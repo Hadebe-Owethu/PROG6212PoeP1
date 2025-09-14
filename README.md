@@ -1,2 +1,2 @@
 # PROG6212PoeP1
-We're building a front-end prototype for the Contract Monthly Claim System (CMCS) using ASP.NET Core MVC.
+We're building a front-end prototype for the Contract Monthly Claim System (CMCS) using ASP.NET Core MVC. The goal is to design a clean, user-friendly interface where lecturers can submit monthly claims, coordinators can review and approve them, and admins can view summaries. We're not implementing backend logic—just focusing on Razor Views, controller stubs, and model classes to simulate the structure and flow of a real application.
