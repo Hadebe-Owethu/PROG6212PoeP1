@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\ProgPOEP1.props" />
+</Project>

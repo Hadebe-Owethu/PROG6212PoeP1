@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Review Claims";
+    var pendingClaims = ViewBag.PendingClaims as List<ProgPOEP1.Models.Claim>;
+}
+
+<h2>Coordinator – Review Claims</h2>
+
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Claim ID</th>
+            <th>Contractor ID</th>
+            <th>Month</th>
+            <th>Hours</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var claim in pendingClaims)
+        {
+            <tr>
+                <td>@claim.ClaimID</td>
+                <td>@claim.ContractorID</td>
+                <td>@claim.Month</td>
+                <td>@claim.HoursWorked</td>
+                <td>@claim.Status</td>
+                <td>
+                    <button class="btn btn-success btn-sm">Approve</button>
+                    <button class="btn btn-danger btn-sm">Reject</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

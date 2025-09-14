@@ -1,0 +1,41 @@
+﻿@{
+    ViewData["Title"] = "Admin Summary";
+    var summary = ViewBag.Summary;
+}
+
+<h2>Admin Summary</h2>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Claims</h5>
+                <p class="card-text">@summary.TotalClaims</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Pending</h5>
+                <p class="card-text">@summary.Pending</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Approved</h5>
+                <p class="card-text">@summary.Approved</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Rejected</h5>
+                <p class="card-text">@summary.Rejected</p>
+            </div>
+        </div>
+    </div>
+</div>
