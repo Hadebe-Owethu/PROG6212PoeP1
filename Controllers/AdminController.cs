@@ -5,8 +5,10 @@ namespace ProgPOEP1.Controllers
 {
     public class AdminController : Controller
     {
+        // Displays summary statistics for all claims
         public IActionResult Summary()
         {
+            // Simulated summary data for dashboard cards
             var summaryStats = new
             {
                 TotalClaims = 25,

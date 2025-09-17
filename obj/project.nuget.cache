@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "I+IxAzwae38=",
+  "dgSpecHash": "0kkIQmWvxmM=",
   "success": true,
-  "projectFilePath": "C:\\Users\\lab_services_student\\Documents\\Class Work Prog\\ProgPOEP1\\ProgPOEP1.csproj",
+  "projectFilePath": "C:\\Users\\lab_services_student\\Documents\\Class Work Prog\\PROG6212PoeP1\\ProgPOEP1.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\lab_services_student\\.nuget\\packages\\humanizer\\2.14.1\\humanizer.2.14.1.nupkg.sha512",
     "C:\\Users\\lab_services_student\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
