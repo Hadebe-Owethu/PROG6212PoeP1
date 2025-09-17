@@ -1,8 +1,42 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Welcome to CMCS";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center mt-5">
+    <h1 class="display-4 fw-bold text-primary">Welcome to CMCS</h1>
+    <p class="lead">Your Contract Monthly Claim System</p>
+
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Lecturer Portal</h5>
+                    <p class="card-text">Submit your monthly claims and track approval status.</p>
+                    <a href="/Lecturer/Dashboard" class="btn btn-outline-primary">Go to Dashboard</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Coordinator Panel</h5>
+                    <p class="card-text">Review and approve submitted claims with ease.</p>
+                    <a href="/Coordinator/ReviewClaims" class="btn btn-outline-success">Review Claims</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Admin Summary</h5>
+                    <p class="card-text">View system-wide claim statistics and summaries.</p>
+                    <a href="/Admin/Summary" class="btn btn-outline-dark">View Summary</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mt-5 text-muted">
+        <small>Built with ASP.NET Core MVC • CMCS Prototype • 2025</small>
+    </footer>
 </div>
