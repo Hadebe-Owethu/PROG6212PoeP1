@@ -3,7 +3,14 @@
     var pendingClaims = ViewBag.PendingClaims as List<ProgPOEP1.Models.Claim>;
 }
 
-<h2>Coordinator – Review Claims</h2>
+<h2 class="mb-4">Pending Claims</h2>
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-info" role="alert">
+        @ViewBag.Message
+    </div>
+}
 
 <table class="table table-bordered table-hover">
     <thead class="table-dark">
@@ -12,8 +19,10 @@
             <th>Contractor ID</th>
             <th>Month</th>
             <th>Hours</th>
+            <th>Rate</th>
+            <th>Total</th>
             <th>Status</th>
-            <th>Action</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -24,10 +33,31 @@
                 <td>@claim.ContractorID</td>
                 <td>@claim.Month</td>
                 <td>@claim.HoursWorked</td>
-                <td>@claim.Status</td>
+                <td>@claim.HourlyRate</td>
+                <td>@(claim.HoursWorked* claim.HourlyRate)</td>
                 <td>
-                    <button class="btn btn-success btn-sm">Approve</button>
-                    <button class="btn btn-danger btn-sm">Reject</button>
+                    @if (claim.Status == "Pending")
+                    {
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    }
+                    else if (claim.Status == "Approved")
+                    {
+                        <span class="badge bg-success">Approved</span>
+                    }
+                    else if (claim.Status == "Rejected")
+                    {
+                        <span class="badge bg-danger">Rejected</span>
+                    }
+                </td>
+                <td>
+                    <form method="post" asp-action="ApproveClaim" asp-controller="Coordinator" style="display:inline;">
+                        <input type="hidden" name="claimId" value="@claim.ClaimID" />
+                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                    </form>
+                    <form method="post" asp-action="RejectClaim" asp-controller="Coordinator" style="display:inline;">
+                        <input type="hidden" name="claimId" value="@claim.ClaimID" />
+                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                    </form>
                 </td>
             </tr>
         }

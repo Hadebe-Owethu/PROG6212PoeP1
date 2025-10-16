@@ -22,6 +22,27 @@ namespace ProgPOEP1.Controllers
         {
             return View();
         }
+        [HttpPost]
+        public IActionResult SubmitClaim(string month, int hours, decimal rate, string notes, IFormFile document)
+        {
+            if (string.IsNullOrEmpty(month) || hours <= 0 || rate <= 0 || document == null)
+            {
+                ViewBag.Message = "error";
+            }
+            else
+            {
+                ViewBag.Message = "success";
+
+                if (document != null)
+                {
+                    ViewBag.FileName = document.FileName;
+                }
+            }
+
+            return View();
+        }
+
+
     }
 }
 
