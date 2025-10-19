@@ -7,9 +7,7 @@
 
 @if (ViewBag.Message != null)
 {
-    <div class="alert alert-info" role="alert">
-        @ViewBag.Message
-    </div>
+    <div class="alert alert-info">@ViewBag.Message</div>
 }
 
 <table class="table table-bordered table-hover">
@@ -21,6 +19,7 @@
             <th>Hours</th>
             <th>Rate</th>
             <th>Total</th>
+            <th>Document</th>
             <th>Status</th>
             <th>Actions</th>
         </tr>
@@ -36,24 +35,29 @@
                 <td>@claim.HourlyRate</td>
                 <td>@(claim.HoursWorked* claim.HourlyRate)</td>
                 <td>
-                    @if (claim.Status == "Pending")
+                    @if (!string.IsNullOrEmpty(claim.DocumentPath))
                     {
-                        <span class="badge bg-warning text-dark">Pending</span>
+                        <a href="@claim.DocumentPath" target="_blank">View</a>
                     }
-                    else if (claim.Status == "Approved")
+                    else
                     {
-                        <span class="badge bg-success">Approved</span>
-                    }
-                    else if (claim.Status == "Rejected")
-                    {
-                        <span class="badge bg-danger">Rejected</span>
+                        <span class="text-muted">No document</span>
                     }
                 </td>
                 <td>
+                    <span class="badge @(claim.Status == "Pending" ? "bg-warning text-dark" : claim.Status == "Approved" ? "bg-success" : claim.Status == "Rejected" ? "bg-danger" : "bg-primary")">@claim.Status</span>
+                </td>
+                <td>
+                    <form method="post" asp-action="VerifyClaim" asp-controller="Coordinator" style="display:inline;">
+                        <input type="hidden" name="claimId" value="@claim.ClaimID" />
+                        <button type="submit" class="btn btn-primary btn-sm">Verify</button>
+                    </form>
+
                     <form method="post" asp-action="ApproveClaim" asp-controller="Coordinator" style="display:inline;">
                         <input type="hidden" name="claimId" value="@claim.ClaimID" />
                         <button type="submit" class="btn btn-success btn-sm">Approve</button>
                     </form>
+
                     <form method="post" asp-action="RejectClaim" asp-controller="Coordinator" style="display:inline;">
                         <input type="hidden" name="claimId" value="@claim.ClaimID" />
                         <button type="submit" class="btn btn-danger btn-sm">Reject</button>

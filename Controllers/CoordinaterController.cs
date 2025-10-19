@@ -17,7 +17,6 @@ namespace ProgPOEP1.Controllers
             ViewBag.Message = TempData["Message"];
             return View();
         }
-
         [HttpPost]
         public IActionResult ApproveClaim(string claimId)
         {
@@ -25,7 +24,7 @@ namespace ProgPOEP1.Controllers
             if (claim != null)
             {
                 claim.Status = "Approved";
-                TempData["Message"] = $"✅ Claim {claimId} has been approved.";
+                TempData["Message"] = $"Claim {claimId} approved.";
             }
             return RedirectToAction("ReviewClaims");
         }
@@ -37,7 +36,18 @@ namespace ProgPOEP1.Controllers
             if (claim != null)
             {
                 claim.Status = "Rejected";
-                TempData["Message"] = $"❌ Claim {claimId} has been rejected.";
+                TempData["Message"] = $"Claim {claimId} rejected.";
+            }
+            return RedirectToAction("ReviewClaims");
+        }
+        [HttpPost]
+        public IActionResult VerifyClaim(string claimId)
+        {
+            var claim = pendingClaims.FirstOrDefault(c => c.ClaimID == claimId);
+            if (claim != null)
+            {
+                claim.Status = "Verified";
+                TempData["Message"] = $"Claim {claimId} verified.";
             }
             return RedirectToAction("ReviewClaims");
         }
