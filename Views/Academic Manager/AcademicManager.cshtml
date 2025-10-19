@@ -1,0 +1,58 @@
+﻿@{
+    ViewData["Title"] = "Academic Manager View";
+    var claims = ViewBag.PendingClaims as List<ProgPOEP1.Models.Claim>;
+}
+
+<h2>Pending Claims – Academic Manager</h2>
+
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Claim ID</th>
+            <th>Contractor ID</th>
+            <th>Month</th>
+            <th>Hours</th>
+            <th>Rate</th>
+            <th>Total</th>
+            <th>Document</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var claim in claims)
+        {
+            <tr>
+                <td>@claim.ClaimID</td>
+                <td>@claim.ContractorID</td>
+                <td>@claim.Month</td>
+                <td>@claim.HoursWorked</td>
+                <td>@claim.HourlyRate</td>
+                <td>@claim.TotalAmount</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(claim.DocumentPath))
+                    {
+                        <a href="@claim.DocumentPath" target="_blank">View</a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">No document</span>
+                    }
+                </td>
+                <td>
+                    <span class="badge @(claim.Status == "Pending" ? "bg-warning text-dark" : claim.Status == "Approved" ? "bg-success" : claim.Status == "Rejected" ? "bg-danger" : "bg-primary")">@claim.Status</span>
+                </td>
+                <td>
+                    <form method="post" asp-action="ApproveClaim" asp-controller="AcademicManager" style="display:inline;">
+                        <input type="hidden" name="claimId" value="@claim.ClaimID" />
+                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                    </form>
+                    <form method="post" asp-action="RejectClaim" asp-controller="AcademicManager" style="display:inline;">
+                        <input type="hidden" name="claimId" value="@claim.ClaimID" />
+                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

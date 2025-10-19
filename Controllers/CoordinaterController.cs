@@ -5,7 +5,7 @@ namespace ProgPOEP1.Controllers
 {
     public class CoordinatorController : Controller
     {
-        private static List<Claim> pendingClaims = new List<Claim>
+        public static List<Claim> pendingClaims = new List<Claim>
         {
             new Claim { ClaimID = "CLM001", ContractorID = "CTR001", Month = "September", HoursWorked = 35, HourlyRate = 500, Status = "Pending" },
             new Claim { ClaimID = "CLM002", ContractorID = "CTR002", Month = "October", HoursWorked = 40, HourlyRate = 450, Status = "Pending" }
@@ -51,5 +51,11 @@ namespace ProgPOEP1.Controllers
             }
             return RedirectToAction("ReviewClaims");
         }
+        public IActionResult CoordinatorView()
+        {
+            ViewBag.PendingClaims = pendingClaims;
+            return View();
+        }
+
     }
 }
