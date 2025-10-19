@@ -1,38 +1,39 @@
 ﻿@{
-    ViewData["Title"] = "Lecturer Dashboard";
+    ViewData["Title"] = "My Claims";
     var claims = ViewBag.Claims as List<ProgPOEP1.Models.Claim>;
 }
 
-<h2>Lecturer Dashboard</h2>
+<h2 class="mb-4">My Submitted Claims</h2>
 
-<!-- Button to navigate to claim submission -->
-<div class="mb-4">
-    <a href="/Lecturer/SubmitClaim" class="btn btn-primary">Submit New Claim</a>
-</div>
-
-<div class="card">
-    <div class="card-header">Claim History</div>
-    <div class="card-body">
-
-        <!-- Table displaying claim history -->
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>Month</th>
-                    <th>Hours Worked</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var claim in claims)
-                {
-                    <tr>
-                        <td>@claim.Month</td>
-                        <td>@claim.HoursWorked</td>
-                        <td>@claim.Status</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
-</div>
+<table class="table table-bordered table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Month</th>
+            <th>Hours Worked</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var claim in claims)
+        {
+            <tr>
+                <td>@claim.Month</td>
+                <td>@claim.HoursWorked</td>
+                <td>
+                    @if (claim.Status == "Pending")
+                    {
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    }
+                    else if (claim.Status == "Approved")
+                    {
+                        <span class="badge bg-success">Approved</span>
+                    }
+                    else if (claim.Status == "Rejected")
+                    {
+                        <span class="badge bg-danger">Rejected</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
