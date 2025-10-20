@@ -1,2 +1,0 @@
-C:\Users\lab_services_student\Documents\Class Work Prog\Class Work Prog\PROG6212PoeP1\UnitTestPOE\obj\Debug\UnitTestPOE.csproj.AssemblyReference.cache
-C:\Users\lab_services_student\Documents\Class Work Prog\Class Work Prog\PROG6212PoeP1\UnitTestPOE\obj\Debug\UnitTestPOE.csproj.CoreCompileInputs.cache

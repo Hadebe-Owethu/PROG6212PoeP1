@@ -1,18 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProgPOEP1.Models;
+
 namespace ProgPOEP1.Controllers
 {
     public class LecturerController : Controller
     {
-        // Displays the lecturer dashboard with static claim data
         public IActionResult Dashboard()
         {
-            // Simulated static data for prototype
-            var claims = new List<Claim>
-            {
-                new Claim { Month = "August", HoursWorked = 40, Status = "Approved" },
-                new Claim { Month = "September", HoursWorked = 35, Status = "Pending" }
-            };
+            var claims = CoordinatorController.pendingClaims
+                .Where(c => c.ContractorID == "LECT001")
+                .ToList();
 
             ViewBag.Claims = claims;
             return View();
@@ -22,27 +19,33 @@ namespace ProgPOEP1.Controllers
         {
             return View();
         }
+
         [HttpPost]
         public IActionResult SubmitClaim(string month, int hours, decimal rate, string notes, IFormFile document)
         {
             if (string.IsNullOrEmpty(month) || hours <= 0 || rate <= 0 || document == null)
             {
                 ViewBag.Message = "error";
+                return View();
             }
-            else
+
+            var fileName = document.FileName;
+            var documentPath = "/documents/" + fileName;
+
+            var newClaim = new Claim
             {
-                ViewBag.Message = "success";
+                ClaimID = "CLM" + Guid.NewGuid().ToString("N"),
+                ContractorID = "LECT001",
+                Month = month,
+                HoursWorked = hours,
+                HourlyRate = rate,
+                DocumentPath = documentPath,
+                Status = "Pending"
+            };
 
-                if (document != null)
-                {
-                    ViewBag.FileName = document.FileName;
-                }
-            }
-
-            return View();
+            CoordinatorController.pendingClaims.Add(newClaim);
+            TempData["Message"] = $"Claim {newClaim.ClaimID} submitted.";
+            return RedirectToAction("ReviewClaims", "Coordinator");
         }
-
-
     }
 }
-

@@ -5,16 +5,16 @@ namespace ProgPOEP1.Controllers
 {
     public class AdminController : Controller
     {
-        // Displays summary statistics for all claims
         public IActionResult Summary()
         {
-            // Simulated summary data for dashboard cards
+            var allClaims = CoordinatorController.pendingClaims;
+
             var summaryStats = new
             {
-                TotalClaims = 25,
-                Pending = 5,
-                Approved = 18,
-                Rejected = 2
+                TotalClaims = allClaims.Count,
+                Pending = allClaims.Count(c => c.Status == "Pending"),
+                Approved = allClaims.Count(c => c.Status == "Approved"),
+                Rejected = allClaims.Count(c => c.Status == "Rejected")
             };
 
             ViewBag.Summary = summaryStats;

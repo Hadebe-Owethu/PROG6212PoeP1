@@ -8,8 +8,7 @@
         public int HoursWorked { get; set; }
         public decimal HourlyRate { get; set; }
         public decimal TotalAmount => HoursWorked * HourlyRate;
-        public string Status { get; set; }  // "Pending", "Approved", "Rejected"
         public string DocumentPath { get; set; }
-
+        public string Status { get; set; }
     }
 }
