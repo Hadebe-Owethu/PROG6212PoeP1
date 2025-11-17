@@ -21,6 +21,9 @@
             <th>Total</th>
             <th>Document</th>
             <th>Status</th>
+            <th>Verified At</th>
+            <th>Approved At</th>
+            <th>Rejected At</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -45,9 +48,19 @@
                     }
                 </td>
                 <td>
-                    <span class="badge @(claim.Status == "Pending" ? "bg-warning text-dark" : claim.Status == "Approved" ? "bg-success" : claim.Status == "Rejected" ? "bg-danger" : "bg-primary")">@claim.Status</span>
+                    <span class="badge @(claim.Status == "Pending" ? "bg-warning text-dark" 
+                        : claim.Status == "Approved" ? "bg-success" 
+                        : claim.Status == "Rejected" ? "bg-danger" 
+                        : "bg-primary")">@claim.Status</span>
                 </td>
+                <td>@claim.VerifiedAt?.ToString("g")</td>
+                <td>@claim.ApprovedAt?.ToString("g")</td>
+                <td>@claim.RejectedAt?.ToString("g")</td>
                 <td>
+                    <form method="post" asp-action="VerifyClaim" asp-controller="Coordinator" style="display:inline;">
+                        <input type="hidden" name="claimId" value="@claim.ClaimID" />
+                        <button type="submit" class="btn btn-warning btn-sm">Verify</button>
+                    </form>
                     <form method="post" asp-action="ApproveClaim" asp-controller="Coordinator" style="display:inline;">
                         <input type="hidden" name="claimId" value="@claim.ClaimID" />
                         <button type="submit" class="btn btn-success btn-sm">Approve</button>
