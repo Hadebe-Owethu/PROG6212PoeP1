@@ -6,7 +6,7 @@ namespace ProgPOEP1.Controllers
 {
     public class HRController : Controller
     {
-        // View to manage lecturers (placeholder for POE)
+        // View to manage lecturers 
         public IActionResult ManageLecturers()
         {
             ViewBag.Message = TempData["Message"];
