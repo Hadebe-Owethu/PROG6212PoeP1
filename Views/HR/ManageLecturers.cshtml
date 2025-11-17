@@ -1,5 +1,25 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "HR Dashboard";
 }
+
+<h2>HR Dashboard</h2>
+
+<p>This page allows HR to manage lecturer data and download reports of approved claims.</p>
+
+<a class="btn btn-secondary" asp-controller="HR" asp-action="PaymentReport">
+    Download Approved Claims Report (CSV)
+</a>
+
+<hr />
+
+<form method="post">
+    <div class="mb-3">
+        <label for="lecturerName" class="form-label">Lecturer Name</label>
+        <input type="text" id="lecturerName" name="lecturerName" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label for="contact" class="form-label">Contact Details</label>
+        <input type="text" id="contact" name="contact" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Update Lecturer Info</button>
+</form>
