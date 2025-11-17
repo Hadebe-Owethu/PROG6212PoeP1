@@ -36,12 +36,37 @@ namespace ProgPOEP1.Controllers
             return RedirectToAction("ReviewClaims");
         }
 
+        //Policy check method
+        private bool MeetsPolicy(Claim c)
+        {
+            return c.HoursWorked > 0
+                && c.HoursWorked <= 200   // prevent unrealistic hours
+                && c.HourlyRate >= 100    // minimum rate
+                && c.HourlyRate <= 1000   // maximum rate
+                && c.TotalAmount == c.HoursWorked * c.HourlyRate; // consistency check
+        }
+
         private void UpdateClaimStatus(string claimId, string newStatus)
         {
             var claim = pendingClaims.FirstOrDefault(c => c.ClaimID == claimId);
             if (claim != null)
             {
+                // Run policy checks before verifying
+                if (newStatus == "Verified" && !MeetsPolicy(claim))
+                {
+                    TempData["Message"] = $"Claim {claimId} failed policy checks.";
+                    return;
+                }
+
                 claim.Status = newStatus;
+
+                switch (newStatus)
+                {
+                    case "Verified": claim.VerifiedAt = DateTime.UtcNow; break;
+                    case "Approved": claim.ApprovedAt = DateTime.UtcNow; break;
+                    case "Rejected": claim.RejectedAt = DateTime.UtcNow; break;
+                }
+
                 TempData["Message"] = $"Claim {claimId} {newStatus.ToLower()}.";
             }
         }
