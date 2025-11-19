@@ -1,25 +1,54 @@
 ﻿@{
-    ViewData["Title"] = "HR Dashboard";
+    ViewData["Title"] = "Manage Lecturers";
+    var lecturers = ViewBag.Lecturers as List<ProgPOEP1.Models.Lecturer>;
+    var message = ViewBag.Message as string;
 }
 
-<h2>HR Dashboard</h2>
+<h2>Manage Lecturers</h2>
 
-<p>This page allows HR to manage lecturer data and download reports of approved claims.</p>
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info">@message</div>
+}
 
-<a class="btn btn-secondary" asp-controller="HR" asp-action="PaymentReport">
-    Download Approved Claims Report (CSV)
-</a>
-
-<hr />
-
-<form method="post">
-    <div class="mb-3">
-        <label for="lecturerName" class="form-label">Lecturer Name</label>
-        <input type="text" id="lecturerName" name="lecturerName" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label for="contact" class="form-label">Contact Details</label>
-        <input type="text" id="contact" name="contact" class="form-control" />
-    </div>
-    <button type="submit" class="btn btn-primary">Update Lecturer Info</button>
-</form>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>LecturerID</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Hourly Rate</th>
+            <th>Username</th>
+            <th>Approved</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var lecturer in lecturers)
+    {
+        <tr>
+            <td>@lecturer.LecturerID</td>
+            <td>@lecturer.FullName</td>
+            <td>@lecturer.Email</td>
+            <td>@lecturer.Department</td>
+            <td>@lecturer.HourlyRate</td>
+            <td>@lecturer.Username</td>
+            <td>@lecturer.IsApproved</td>
+            <td>
+                @if (!lecturer.IsApproved)
+                {
+                    <form asp-action="ApproveLecturer" method="post">
+                        <input type="hidden" name="lecturerId" value="@lecturer.LecturerID" />
+                        <button type="submit" class="btn btn-success">Approve</button>
+                    </form>
+                }
+                else
+                {
+                    <span class="text-success">Already Approved</span>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

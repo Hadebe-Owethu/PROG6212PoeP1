@@ -1,4 +1,5 @@
 wwwroot\css\site.css
+wwwroot\documents\2bf7c9b5-2330-48d5-a437-2439bad19e90.pdf
 wwwroot\favicon.ico
 wwwroot\js\site.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css

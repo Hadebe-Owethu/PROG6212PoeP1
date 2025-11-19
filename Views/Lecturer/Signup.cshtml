@@ -1,0 +1,36 @@
+﻿@model ProgPOEP1.Models.Lecturer
+@{
+    ViewData["Title"] = "Lecturer Signup";
+    var message = ViewBag.Message as string;
+}
+
+<h2>Lecturer Signup</h2>
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info">@message</div>
+}
+
+<form method="post" asp-action="Signup">
+    <div class="mb-3">
+        <label>Full Name</label>
+        <input asp-for="FullName" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label>Email</label>
+        <input asp-for="Email" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label>Department</label>
+        <input asp-for="Department" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label>Username</label>
+        <input asp-for="Username" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label>Password</label>
+        <input asp-for="Password" type="password" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-success">Sign Up</button>
+</form>

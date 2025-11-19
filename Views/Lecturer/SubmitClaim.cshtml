@@ -1,37 +1,42 @@
 ﻿@{
     ViewData["Title"] = "Submit Claim";
     var message = ViewBag.Message as string;
+    var rate = ViewBag.HourlyRate as decimal?;
+    var fullName = ViewBag.FullName as string;
 }
 
 <h2 class="mb-4">Submit Monthly Claim</h2>
 
-@if (message == "success")
+@if (!string.IsNullOrEmpty(message))
 {
-    <div class="alert alert-success" role="alert">
-        Claim submitted successfully!
-    </div>
-}
-else if (message == "error")
-{
-    <div class="alert alert-danger" role="alert">
-        Please fill in all fields and upload a document.
-    </div>
+    <div class="alert alert-info" role="alert">@message</div>
 }
 
 <form method="post" enctype="multipart/form-data">
     <div class="mb-3">
+        <label class="form-label">Lecturer</label>
+        <input type="text" class="form-control" value="@fullName" readonly />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Hourly Rate</label>
+        <input type="number" class="form-control" id="HourlyRate" value="@rate" readonly />
+    </div>
+
+    <div class="mb-3">
         <label for="month" class="form-label">Month</label>
-        <input type="text" class="form-control" id="month" name="month" placeholder="e.g., September" />
+        <input type="text" class="form-control" id="month" name="month" placeholder="e.g., September" required />
     </div>
 
     <div class="mb-3">
         <label for="hours" class="form-label">Hours Worked</label>
-        <input type="number" class="form-control" id="hours" name="hours" />
+        <input type="number" class="form-control" id="HoursWorked" name="hours" required />
+        <small class="text-muted">Maximum 180 hours per month</small>
     </div>
 
     <div class="mb-3">
-        <label for="rate" class="form-label">Hourly Rate</label>
-        <input type="number" class="form-control" id="rate" name="rate" step="0.01" />
+        <label class="form-label">Total Amount</label>
+        <input type="number" class="form-control" id="TotalAmount" readonly />
     </div>
 
     <div class="mb-3">
@@ -44,12 +49,18 @@ else if (message == "error")
         <input type="file" class="form-control" id="document" name="document" accept=".pdf,.docx,.xlsx" />
     </div>
 
-    @if (ViewBag.FileName != null)
-    {
-        <p class="text-muted">Uploaded file: <strong>@ViewBag.FileName</strong></p>
-    }
-
-
-
     <button type="submit" class="btn btn-lg btn-success w-100">Submit Claim</button>
 </form>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        function recalc() {
+            const h = parseFloat($('#HoursWorked').val()) || 0;
+            const r = parseFloat($('#HourlyRate').val()) || 0;
+            $('#TotalAmount').val((h * r).toFixed(2));
+        }
+        $('#HoursWorked').on('input', recalc);
+        recalc();
+    </script>
+}
