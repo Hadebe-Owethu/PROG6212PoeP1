@@ -16,11 +16,14 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link" asp-controller="Lecturer" asp-action="Dashboard">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Lecturer" asp-action="Signup">Sign Up</a>
                     <li class="nav-item"><a class="nav-link" asp-controller="HR" asp-action="ManageLecturers">Manage Lecturers</a>
                     <li class="nav-item"><a class="nav-link" asp-controller="Lecturer" asp-action="SubmitClaim">Submit Claim</a></li>
                     <li class="nav-item"><a class="nav-link" asp-controller="Coordinator" asp-action="ReviewClaims">Review Claims</a></li>
                     <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Summary">Admin Summary</a></li>   
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                        <button class="btn btn-outline-danger btn-sm">Logout</button>
+                    </form>
+
                     </li>
 
                     </li>

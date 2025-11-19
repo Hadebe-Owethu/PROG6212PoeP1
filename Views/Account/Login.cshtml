@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Login";
+}
+
+<h2 class="mb-4">System Login</h2>
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-danger">@ViewBag.Message</div>
+}
+
+<form method="post" asp-action="Login">
+    <div class="mb-3">
+        <label>Username</label>
+        <input type="text" name="username" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label>Password</label>
+        <input type="password" name="password" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label>Role</label>
+        <select name="role" class="form-select" required>
+            <option value="">-- Select Role --</option>
+            <option value="Lecturer">Lecturer</option>
+            <option value="Coordinator">Coordinator</option>
+            <option value="AcademicManager">Academic Manager</option>
+            <option value="HR">HR</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>

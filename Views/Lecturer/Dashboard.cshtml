@@ -1,48 +1,86 @@
 ﻿@{
-    ViewData["Title"] = "My Claims";
+    ViewData["Title"] = "Lecturer Dashboard";
     var claims = ViewBag.Claims as List<ProgPOEP1.Models.Claim>;
+    var lecturerName = ViewBag.LecturerName as string;
+    var statusFilter = ViewBag.StatusFilter as string;
     var message = ViewBag.Message as string;
 }
 
-<h2 class="mb-4">My Submitted Claims</h2>
+<h2 class="mb-3">Welcome, @lecturerName</h2>
 
 @if (!string.IsNullOrEmpty(message))
 {
     <div class="alert alert-info">@message</div>
 }
 
-<table class="table table-bordered table-hover">
-    <thead class="table-dark">
-        <tr>
-            <th>Month</th>
-            <th>Hours Worked</th>
-            <th>Hourly Rate</th>
-            <th>Total Amount</th>
-            <th>Status</th>
-            <th>Verified At</th>
-            <th>Approved At</th>
-            <th>Rejected At</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var claim in claims)
-        {
+<form method="get" asp-action="Dashboard" class="mb-3">
+    <label for="statusFilter">Filter by Status:</label>
+    <select name="statusFilter" class="form-select" onchange="this.form.submit()">
+        <option value="">-- All --</option>
+        <option value="Pending" selected="@("Pending" == statusFilter)">Pending</option>
+        <option value="Verified" selected="@("Verified" == statusFilter)">Verified</option>
+        <option value="Approved" selected="@("Approved" == statusFilter)">Approved</option>
+        <option value="Rejected" selected="@("Rejected" == statusFilter)">Rejected</option>
+    </select>
+</form>
+
+@if (claims != null && claims.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead>
             <tr>
-                <td>@claim.Month</td>
-                <td>@claim.HoursWorked</td>
-                <td>@claim.HourlyRate.ToString("C")</td>
-                <td>@claim.TotalAmount.ToString("C")</td>
-                <td>
-                    <span class="badge @(claim.Status == "Pending" ? "bg-warning text-dark"
-                                                  : claim.Status == "Approved" ? "bg-success"
-                                                  : claim.Status == "Rejected" ? "bg-danger"
-                                                  : claim.Status == "Verified" ? "bg-info text-dark"
-                                                  : "bg-secondary")">@claim.Status</span>
-            </td>
-            <td>@claim.VerifiedAt?.ToString("g")</td>
-            <td>@claim.ApprovedAt?.ToString("g")</td>
-            <td>@claim.RejectedAt?.ToString("g")</td>
-        </tr>
-                }
-    </tbody>
-</table>
+                <th>Claim ID</th>
+                <th>Month</th>
+                <th>Hours</th>
+                <th>Rate</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Document</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var claim in claims)
+            {
+                <tr>
+                    <td>@claim.ClaimID</td>
+                    <td>@claim.Month</td>
+                    <td>@claim.HoursWorked</td>
+                    <td>@claim.HourlyRate.ToString("C")</td>
+                    <td>@(claim.HoursWorked* claim.HourlyRate).ToString("C")</td>
+                    <td>
+                        <span class="badge bg-@GetStatusColor(claim.Status)">
+                            @claim.Status
+                        </span>
+                    </td>
+                    <td>@claim.CreatedAt.ToShortDateString()</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(claim.DocumentPath))
+                        {
+                            <a href="@claim.DocumentPath" target="_blank">View</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No file</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No claims found.</p>
+}
+
+@functions {
+    string GetStatusColor(string status) => status switch
+    {
+        "Pending" => "secondary",
+        "Verified" => "info",
+        "Approved" => "success",
+        "Rejected" => "danger",
+        _ => "dark"
+    };
+}

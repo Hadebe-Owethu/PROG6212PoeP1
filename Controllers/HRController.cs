@@ -1,24 +1,33 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ProgPOEP1.Models;
-using System.Text;
+using ProgPOEP1.Data;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace ProgPOEP1.Controllers
 {
     public class HRController : Controller
     {
-        public static List<Lecturer> lecturers = new List<Lecturer>();
+        private readonly AppDbContext _context;
 
-        public IActionResult ManageLecturers()
+        public HRController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IActionResult> ManageLecturers()
         {
             ViewBag.Message = TempData["Message"];
-            ViewBag.Lecturers = lecturers;
+            ViewBag.Lecturers = await _context.Lecturers.OrderBy(l => l.FullName).ToListAsync();
             return View();
         }
 
         [HttpPost]
-        public IActionResult AddOrUpdateLecturer(string lecturerId, string fullName, string email, string department, decimal hourlyRate, string username, string password)
+        public async Task<IActionResult> AddOrUpdateLecturer(string lecturerId, string fullName, string email, string department, decimal hourlyRate, string username, string password)
         {
-            var existing = lecturers.FirstOrDefault(l => l.LecturerID == lecturerId);
+            var existing = await _context.Lecturers.FirstOrDefaultAsync(l => l.LecturerID == lecturerId);
             if (existing != null)
             {
                 existing.FullName = fullName;
@@ -27,11 +36,12 @@ namespace ProgPOEP1.Controllers
                 existing.HourlyRate = hourlyRate;
                 existing.Username = username;
                 existing.Password = password;
+                _context.Lecturers.Update(existing);
                 TempData["Message"] = "Lecturer updated.";
             }
             else
             {
-                lecturers.Add(new Lecturer
+                var newLecturer = new Lecturer
                 {
                     LecturerID = lecturerId,
                     FullName = fullName,
@@ -41,41 +51,53 @@ namespace ProgPOEP1.Controllers
                     Username = username,
                     Password = password,
                     IsApproved = false
-                });
+                };
+                await _context.Lecturers.AddAsync(newLecturer);
                 TempData["Message"] = "Lecturer added.";
             }
 
+            await _context.SaveChangesAsync();
             return RedirectToAction("ManageLecturers");
         }
 
         [HttpPost]
-        public IActionResult ApproveLecturer(string lecturerId)
+        public async Task<IActionResult> ApproveLecturer(string lecturerId)
         {
-            var lecturer = lecturers.FirstOrDefault(l => l.LecturerID == lecturerId);
+            var lecturer = await _context.Lecturers.FirstOrDefaultAsync(l => l.LecturerID == lecturerId);
             if (lecturer != null)
             {
                 lecturer.IsApproved = true;
+                _context.Lecturers.Update(lecturer);
+                await _context.SaveChangesAsync();
                 TempData["Message"] = $"Lecturer {lecturerId} approved.";
             }
             return RedirectToAction("ManageLecturers");
         }
 
-        public IActionResult PaymentReport()
+        [HttpPost]
+        public async Task<IActionResult> DeleteLecturer(string lecturerId)
         {
-            var approvedClaims = CoordinatorController.pendingClaims
+            var lecturer = await _context.Lecturers.FirstOrDefaultAsync(l => l.LecturerID == lecturerId);
+            if (lecturer != null)
+            {
+                _context.Lecturers.Remove(lecturer);
+                await _context.SaveChangesAsync();
+                TempData["Message"] = $"Lecturer {lecturerId} deleted.";
+            }
+            return RedirectToAction("ManageLecturers");
+        }
+
+        public async Task<IActionResult> PaymentReportPdf()
+        {
+            var approvedClaims = await _context.Claims
                 .Where(c => c.Status == "Approved")
                 .OrderBy(c => c.ContractorID)
-                .ToList();
+                .ToListAsync();
 
-            var sb = new StringBuilder();
-            sb.AppendLine("ClaimID,ContractorID,Month,HoursWorked,HourlyRate,TotalAmount,ApprovedAt");
-            foreach (var claim in approvedClaims)
-            {
-                sb.AppendLine($"{claim.ClaimID},{claim.ContractorID},{claim.Month},{claim.HoursWorked},{claim.HourlyRate},{claim.TotalAmount},{claim.ApprovedAt}");
-            }
+            var document = new ClaimReportDocument(approvedClaims);
+            var pdfBytes = document.GeneratePdf();
 
-            var bytes = Encoding.UTF8.GetBytes(sb.ToString());
-            return File(bytes, "text/csv", $"ApprovedClaims_{DateTime.UtcNow:yyyyMMddHHmmss}.csv");
+            return File(pdfBytes, "application/pdf", $"ApprovedClaims_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf");
         }
     }
 }

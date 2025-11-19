@@ -1,23 +1,26 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ProgPOEP1.Models;
+using Microsoft.EntityFrameworkCore;
+using ProgPOEP1.Data;
 
 namespace ProgPOEP1.Controllers
 {
     public class AdminController : Controller
     {
-        public IActionResult Summary()
+        private readonly AppDbContext _context;
+
+        public AdminController(AppDbContext context)
         {
-            var allClaims = CoordinatorController.pendingClaims;
+            _context = context;
+        }
 
-            var summaryStats = new
-            {
-                TotalClaims = allClaims.Count,
-                Pending = allClaims.Count(c => c.Status == "Pending"),
-                Approved = allClaims.Count(c => c.Status == "Approved"),
-                Rejected = allClaims.Count(c => c.Status == "Rejected")
-            };
+        public async Task<IActionResult> Summary()
+        {
+            var allClaims = await _context.Claims
+                .Include(c => c.Contractor) // optional: if you want lecturer info
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
 
-            ViewBag.Summary = summaryStats;
+            ViewBag.Claims = allClaims;
             return View();
         }
     }

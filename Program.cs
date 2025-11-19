@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using ProgPOEP1.Data;
+
 namespace ProgPOEP1
 {
     public class Program
@@ -6,10 +9,10 @@ namespace ProgPOEP1
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-            // ? Add session services
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession(options =>
             {
@@ -20,7 +23,6 @@ namespace ProgPOEP1
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -28,20 +30,18 @@ namespace ProgPOEP1
             }
 
             app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
             app.UseRouting();
-
-            // ? Enable session middleware
             app.UseSession();
-
             app.UseAuthorization();
 
-            app.MapStaticAssets();
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
-                .WithStaticAssets();
+                pattern: "{controller=Account}/{action=Login}/{id?}");
 
             app.Run();
+
         }
     }
 }

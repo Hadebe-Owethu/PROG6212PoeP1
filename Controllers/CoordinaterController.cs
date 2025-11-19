@@ -1,74 +1,83 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ProgPOEP1.Models;
+using Microsoft.EntityFrameworkCore;
+using ProgPOEP1.Data;
+using ProgPOEP1.Security;
 
 namespace ProgPOEP1.Controllers
 {
+    [AdminAuthorize("Coordinator")]
     public class CoordinatorController : Controller
     {
-        public static List<Claim> pendingClaims = new List<Claim>();
+        private readonly AppDbContext _context;
 
-        public IActionResult ReviewClaims()
+        public CoordinatorController(AppDbContext context)
         {
-            ViewBag.PendingClaims = pendingClaims;
+            _context = context;
+        }
+
+        // Admin dashboard with optional status filter and lecturer info
+        public async Task<IActionResult> AdminDashboard(string? statusFilter = null)
+        {
+            var query = _context.Claims
+                .Include(c => c.Contractor) // fetch lecturer details
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(statusFilter))
+                query = query.Where(c => c.Status == statusFilter);
+
+            var claims = await query
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+
+            ViewBag.Claims = claims;
+            ViewBag.StatusFilter = statusFilter;
+            ViewBag.AdminUser = HttpContext.Session.GetString("AdminUser");
             ViewBag.Message = TempData["Message"];
-            ViewBag.Role = "Coordinator";
-            return View("ReviewClaims");
+            return View();
         }
 
+        // Update status and stamp timestamps
         [HttpPost]
-        public IActionResult ApproveClaim(string claimId)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateClaimStatus(string claimId, string newStatus)
         {
-            UpdateClaimStatus(claimId, "Approved");
-            return RedirectToAction("ReviewClaims");
-        }
+            if (string.IsNullOrWhiteSpace(claimId) || string.IsNullOrWhiteSpace(newStatus))
+                return RedirectToAction("AdminDashboard");
 
-        [HttpPost]
-        public IActionResult RejectClaim(string claimId)
-        {
-            UpdateClaimStatus(claimId, "Rejected");
-            return RedirectToAction("ReviewClaims");
-        }
+            var claim = await _context.Claims.FirstOrDefaultAsync(c => c.ClaimID == claimId);
+            if (claim == null)
+                return RedirectToAction("AdminDashboard");
 
-        [HttpPost]
-        public IActionResult VerifyClaim(string claimId)
-        {
-            UpdateClaimStatus(claimId, "Verified");
-            return RedirectToAction("ReviewClaims");
-        }
+            claim.Status = newStatus;
 
-        //Policy check method
-        private bool MeetsPolicy(Claim c)
-        {
-            return c.HoursWorked > 0
-                && c.HoursWorked <= 200   // prevent unrealistic hours
-                && c.HourlyRate >= 100    // minimum rate
-                && c.HourlyRate <= 1000   // maximum rate
-                && c.TotalAmount == c.HoursWorked * c.HourlyRate; // consistency check
-        }
-
-        private void UpdateClaimStatus(string claimId, string newStatus)
-        {
-            var claim = pendingClaims.FirstOrDefault(c => c.ClaimID == claimId);
-            if (claim != null)
+            if (newStatus == "Verified")
             {
-                // Run policy checks before verifying
-                if (newStatus == "Verified" && !MeetsPolicy(claim))
-                {
-                    TempData["Message"] = $"Claim {claimId} failed policy checks.";
-                    return;
-                }
-
-                claim.Status = newStatus;
-
-                switch (newStatus)
-                {
-                    case "Verified": claim.VerifiedAt = DateTime.UtcNow; break;
-                    case "Approved": claim.ApprovedAt = DateTime.UtcNow; break;
-                    case "Rejected": claim.RejectedAt = DateTime.UtcNow; break;
-                }
-
-                TempData["Message"] = $"Claim {claimId} {newStatus.ToLower()}.";
+                claim.VerifiedAt = DateTime.UtcNow;
+                claim.ApprovedAt = null;
+                claim.RejectedAt = null;
             }
+            else if (newStatus == "Approved")
+            {
+                claim.ApprovedAt = DateTime.UtcNow;
+                claim.RejectedAt = null;
+            }
+            else if (newStatus == "Rejected")
+            {
+                claim.RejectedAt = DateTime.UtcNow;
+                claim.ApprovedAt = null;
+            }
+            else if (newStatus == "Pending")
+            {
+                claim.VerifiedAt = null;
+                claim.ApprovedAt = null;
+                claim.RejectedAt = null;
+            }
+
+            _context.Claims.Update(claim);
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = $"Claim {claimId} set to {newStatus}.";
+            return RedirectToAction("AdminDashboard");
         }
     }
 }

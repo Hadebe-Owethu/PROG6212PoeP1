@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 namespace ProgPOEP1.Models
 {
     public class ErrorViewModel

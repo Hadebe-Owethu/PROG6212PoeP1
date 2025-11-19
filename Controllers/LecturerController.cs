@@ -1,24 +1,36 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using ProgPOEP1.Models;
+using ProgPOEP1.Data;
 using System.IO;
 
 namespace ProgPOEP1.Controllers
 {
     public class LecturerController : Controller
     {
+        private readonly AppDbContext _context;
+
+        public LecturerController(AppDbContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult Login()
         {
             return View();
         }
 
         [HttpPost]
-        public IActionResult Login(string username, string password)
+        public async Task<IActionResult> Login(string username, string password)
         {
-            var lecturer = HRController.lecturers.FirstOrDefault(l => l.Username == username && l.Password == password && l.IsApproved);
+            var lecturer = await _context.Lecturers
+                .FirstOrDefaultAsync(l => l.Username == username && l.Password == password && l.IsApproved);
+
             if (lecturer != null)
             {
                 HttpContext.Session.SetString("LecturerID", lecturer.LecturerID);
+                HttpContext.Session.SetString("LecturerName", lecturer.FullName);
                 return RedirectToAction("Dashboard");
             }
 
@@ -26,25 +38,34 @@ namespace ProgPOEP1.Controllers
             return View();
         }
 
-        public IActionResult Dashboard()
+        // Filter support: optional statusFilter query parameter
+        public async Task<IActionResult> Dashboard(string? statusFilter = null)
         {
             var lecturerId = HttpContext.Session.GetString("LecturerID");
-            if (lecturerId == null)
+            if (string.IsNullOrEmpty(lecturerId))
                 return RedirectToAction("Login");
 
-            var claims = CoordinatorController.pendingClaims
-                .Where(c => c.ContractorID == lecturerId)
-                .ToList();
+            var query = _context.Claims
+                .Where(c => c.ContractorID == lecturerId);
+
+            if (!string.IsNullOrWhiteSpace(statusFilter))
+                query = query.Where(c => c.Status == statusFilter);
+
+            var claims = await query
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
 
             ViewBag.Claims = claims;
+            ViewBag.StatusFilter = statusFilter;
             ViewBag.Message = TempData["Message"];
-            return View();
+            ViewBag.LecturerName = HttpContext.Session.GetString("LecturerName");
+            return View("ViewClaims");
         }
 
-        public IActionResult SubmitClaim()
+        public async Task<IActionResult> SubmitClaim()
         {
             var lecturerId = HttpContext.Session.GetString("LecturerID");
-            var lecturer = HRController.lecturers.FirstOrDefault(l => l.LecturerID == lecturerId);
+            var lecturer = await _context.Lecturers.FirstOrDefaultAsync(l => l.LecturerID == lecturerId);
 
             if (lecturer == null)
                 return RedirectToAction("Login");
@@ -56,10 +77,10 @@ namespace ProgPOEP1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SubmitClaim(string month, int hours, string notes, IFormFile document)
+        public async Task<IActionResult> SubmitClaim(string month, int hours, string notes, IFormFile? document)
         {
             var lecturerId = HttpContext.Session.GetString("LecturerID");
-            var lecturer = HRController.lecturers.FirstOrDefault(l => l.LecturerID == lecturerId);
+            var lecturer = await _context.Lecturers.FirstOrDefaultAsync(l => l.LecturerID == lecturerId);
 
             if (lecturer == null)
                 return RedirectToAction("Login");
@@ -73,7 +94,7 @@ namespace ProgPOEP1.Controllers
             decimal rate = lecturer.HourlyRate;
             string? documentPath = null;
 
-            if (document != null && document.Length > 0)
+            if (document is { Length: > 0 })
             {
                 var ext = Path.GetExtension(document.FileName).ToLowerInvariant();
                 if (!new[] { ".pdf", ".docx", ".xlsx" }.Contains(ext))
@@ -87,7 +108,7 @@ namespace ProgPOEP1.Controllers
                 var fileName = $"{Guid.NewGuid()}{ext}";
                 var filePath = Path.Combine(uploads, fileName);
                 using var stream = new FileStream(filePath, FileMode.Create);
-                document.CopyTo(stream);
+                await document.CopyToAsync(stream);
                 documentPath = "/documents/" + fileName;
             }
 
@@ -101,30 +122,25 @@ namespace ProgPOEP1.Controllers
                 DocumentPath = documentPath ?? "",
                 Status = "Pending",
                 Notes = notes,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                VerifiedAt = null,
+                ApprovedAt = null,
+                RejectedAt = null
             };
 
-            CoordinatorController.pendingClaims.Add(newClaim);
+            await _context.Claims.AddAsync(newClaim);
+            await _context.SaveChangesAsync();
+
             TempData["Message"] = $"Claim {newClaim.ClaimID} submitted.";
             return RedirectToAction("Dashboard");
         }
-        [HttpGet]
-        public IActionResult Signup()
-        {
-            return View();
-        }
 
+        // Logout
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Signup(Lecturer model)
+        public IActionResult Logout()
         {
-            model.LecturerID = "LECT" + Guid.NewGuid().ToString("N").Substring(0, 5);
-            model.IsApproved = false; // Require manual approval
-            HRController.lecturers.Add(model);
-
-            ViewBag.Message = "Signup successful. Await approval.";
-            return View();
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
         }
-
     }
 }
