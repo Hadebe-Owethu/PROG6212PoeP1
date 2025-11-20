@@ -1,46 +1,39 @@
 ﻿@{
     ViewData["Title"] = "Submit Claim";
-    var hourlyRate = ViewBag.HourlyRate;
+    var hourlyRate = ViewBag.HourlyRate as decimal?;
     var fullName = ViewBag.FullName as string;
     var message = ViewBag.Message as string;
 }
 
 <h2 class="mb-3">Submit Claim</h2>
+<p>Lecturer: @fullName</p>
+<p>Hourly Rate: @(hourlyRate?.ToString("C"))</p>
 
 @if (!string.IsNullOrEmpty(message))
 {
-    <div class="alert alert-danger">@message</div>
+    <div class="alert alert-info">@message</div>
 }
 
-<form method="post" asp-action="SubmitClaim" enctype="multipart/form-data">
+<form asp-action="SubmitClaim" method="post" enctype="multipart/form-data">
     <div class="mb-3">
-        <label>Lecturer</label>
-        <input type="text" class="form-control" value="@fullName" readonly />
+        <label for="month" class="form-label">Month</label>
+        <input type="text" name="month" id="month" class="form-control" placeholder="e.g. October 2025" required />
     </div>
 
     <div class="mb-3">
-        <label>Hourly Rate</label>
-        <input type="text" class="form-control" value="@hourlyRate" readonly />
+        <label for="hours" class="form-label">Hours Worked</label>
+        <input type="number" name="hours" id="hours" class="form-control" min="1" max="180" required />
+        <small class="text-muted">Maximum allowed: 180 hours</small>
     </div>
 
     <div class="mb-3">
-        <label>Month</label>
-        <input type="text" name="month" class="form-control" required />
+        <label for="notes" class="form-label">Notes</label>
+        <textarea name="notes" id="notes" class="form-control" rows="3" placeholder="Optional notes about this claim"></textarea>
     </div>
 
     <div class="mb-3">
-        <label>Hours Worked</label>
-        <input type="number" name="hours" class="form-control" min="1" max="180" required />
-    </div>
-
-    <div class="mb-3">
-        <label>Notes</label>
-        <textarea name="notes" class="form-control"></textarea>
-    </div>
-
-    <div class="mb-3">
-        <label>Supporting Document (.pdf, .docx, .xlsx)</label>
-        <input type="file" name="document" class="form-control" />
+        <label for="document" class="form-label">Supporting Document (PDF, DOCX, XLSX)</label>
+        <input type="file" name="document" id="document" class="form-control" />
     </div>
 
     <button type="submit" class="btn btn-primary">Submit Claim</button>

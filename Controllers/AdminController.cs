@@ -13,14 +13,17 @@ namespace ProgPOEP1.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Summary()
+        public async Task<IActionResult> AdminDashboard(string? statusFilter = null)
         {
-            var allClaims = await _context.Claims
-                .Include(c => c.Contractor) // optional: if you want lecturer info
+            var claims = await _context.Claims
+                .Include(c => c.Contractor)
+                .Where(c => string.IsNullOrEmpty(statusFilter) || c.Status == statusFilter)
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
 
-            ViewBag.Claims = allClaims;
+            ViewBag.Claims = claims;
+            ViewBag.StatusFilter = statusFilter;
+            ViewBag.AdminUser = HttpContext.Session.GetString("AdminUser");
             return View();
         }
     }

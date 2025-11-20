@@ -16,6 +16,10 @@ namespace ProgPOEP1.Controllers
         {
             _context = context;
         }
+        public IActionResult Dashboard()
+        {
+            return View();
+        }
 
         public async Task<IActionResult> ManageLecturers()
         {
@@ -94,10 +98,25 @@ namespace ProgPOEP1.Controllers
                 .OrderBy(c => c.ContractorID)
                 .ToListAsync();
 
-            var document = new ClaimReportDocument(approvedClaims);
-            var pdfBytes = document.GeneratePdf();
+            try
+            {
+                // Optional: log claims for debugging
+                foreach (var claim in approvedClaims)
+                {
+                    Console.WriteLine($"Claim: {claim.ClaimID}, Rate: {claim.HourlyRate}, Hours: {claim.HoursWorked}");
+                }
 
-            return File(pdfBytes, "application/pdf", $"ApprovedClaims_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf");
+                var document = new ClaimReportDocument(approvedClaims);
+                var pdfBytes = document.GeneratePdf();
+
+                return File(pdfBytes, "application/pdf", $"ApprovedClaims_{DateTime.UtcNow:yyyyMMddHHmmss}.pdf");
+            }
+            catch (Exception ex)
+            {
+                TempData["Message"] = "PDF generation failed: " + ex.Message;
+                return RedirectToAction("ManageLecturers");
+            }
         }
+
     }
 }

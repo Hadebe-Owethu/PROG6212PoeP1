@@ -49,35 +49,33 @@ namespace ProgPOEP1.Controllers
                 return RedirectToAction("Login");
             }
 
-            // ✅ Coordinator login (hardcoded)
             if (role == "Coordinator" && username == "coord" && password == "coord123")
             {
                 HttpContext.Session.SetString("IsAdmin", "true");
                 HttpContext.Session.SetString("AdminUser", username);
                 HttpContext.Session.SetString("Role", "Coordinator");
 
-                return RedirectToAction("AdminDashboard", "ProgrammeCoordinator");
+                return RedirectToAction("AdminDashboard", "Coordinator"); 
             }
 
-            // ✅ Academic Manager login (hardcoded)
             if (role == "AcademicManager" && username == "manager" && password == "manager123")
             {
                 HttpContext.Session.SetString("IsAdmin", "true");
                 HttpContext.Session.SetString("AdminUser", username);
                 HttpContext.Session.SetString("Role", "AcademicManager");
 
-                return RedirectToAction("AdminDashboard", "AcademicManager");
+                return RedirectToAction("AdminDashboard", "Admin"); 
             }
 
-            // ✅ HR login (optional hardcoded)
             if (role == "HR" && username == "hradmin" && password == "hr123")
             {
                 HttpContext.Session.SetString("IsAdmin", "true");
                 HttpContext.Session.SetString("AdminUser", username);
                 HttpContext.Session.SetString("Role", "HR");
 
-                return RedirectToAction("Dashboard", "HR");
+                return RedirectToAction("Dashboard", "HR"); 
             }
+
 
             TempData["Message"] = "Invalid credentials or role.";
             return RedirectToAction("Login");

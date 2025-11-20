@@ -1,20 +1,21 @@
 ﻿@{
-    ViewData["Title"] = "Lecturer Dashboard";
+    ViewData["Title"] = "Admin Dashboard";
     var claims = ViewBag.Claims as List<ProgPOEP1.Models.Claim>;
     var statusFilter = ViewBag.StatusFilter as string;
     var message = ViewBag.Message as string;
-    var lecturerName = ViewBag.LecturerName as string;
+    var adminUser = ViewBag.AdminUser as string;
 }
 
-<h2 class="mb-3">Lecturer Dashboard</h2>
-<p>Welcome, @lecturerName</p>
+<h2 class="mb-3">Admin Dashboard</h2>
+<p>Welcome, @adminUser</p>
 
 @if (!string.IsNullOrEmpty(message))
 {
     <div class="alert alert-info">@message</div>
 }
 
-<form method="get" asp-action="Dashboard" class="mb-3">
+<!-- Filter dropdown -->
+<form method="get" asp-action="AdminDashboard" class="mb-3">
     <label for="statusFilter">Filter by Status:</label>
     <select name="statusFilter" class="form-select" onchange="this.form.submit()">
         <option value="">-- All --</option>
@@ -31,14 +32,15 @@
         <thead>
             <tr>
                 <th>Claim ID</th>
+                <th>Lecturer</th>
                 <th>Month</th>
                 <th>Hours</th>
                 <th>Rate</th>
                 <th>Total</th>
                 <th>Status</th>
                 <th>Created</th>
-                <th>Notes</th>
                 <th>Document</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -46,6 +48,7 @@
             {
                 <tr>
                     <td>@claim.ClaimID</td>
+                    <td>@claim.Contractor?.FullName</td>
                     <td>@claim.Month</td>
                     <td>@claim.HoursWorked</td>
                     <td>@claim.HourlyRate.ToString("C")</td>
@@ -56,7 +59,6 @@
                         </span>
                     </td>
                     <td>@claim.CreatedAt.ToShortDateString()</td>
-                    <td>@claim.Notes</td>
                     <td>
                         @if (!string.IsNullOrEmpty(claim.DocumentPath))
                         {
@@ -66,6 +68,18 @@
                         {
                             <span class="text-muted">No file</span>
                         }
+                    </td>
+                    <td>
+                        <form method="post" asp-action="UpdateClaimStatus" class="d-flex flex-column">
+                            <input type="hidden" name="claimId" value="@claim.ClaimID" />
+                            <select name="newStatus" class="form-select form-select-sm mb-1">
+                                <option value="Pending">Pending</option>
+                                <option value="Verified">Verified</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                        </form>
                     </td>
                 </tr>
             }

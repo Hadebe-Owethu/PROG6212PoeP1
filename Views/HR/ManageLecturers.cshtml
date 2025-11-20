@@ -4,71 +4,84 @@
     var message = ViewBag.Message as string;
 }
 
-<h2 class="mb-4">Manage Lecturers</h2>
+<h2 class="mb-3">Manage Lecturers</h2>
 
 @if (!string.IsNullOrEmpty(message))
 {
     <div class="alert alert-info">@message</div>
 }
 
-<a class="btn btn-outline-primary mb-3" asp-action="PaymentReportPdf">Download PDF Report</a>
+<!-- Add or Update Lecturer Form -->
+<form asp-action="AddOrUpdateLecturer" method="post" class="mb-4">
+    <div class="row mb-2">
+        <div class="col">
+            <input type="text" name="lecturerId" class="form-control" placeholder="Lecturer ID" required />
+        </div>
+        <div class="col">
+            <input type="text" name="fullName" class="form-control" placeholder="Full Name" required />
+        </div>
+        <div class="col">
+            <input type="email" name="email" class="form-control" placeholder="Email" required />
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col">
+            <input type="text" name="department" class="form-control" placeholder="Department" required />
+        </div>
+        <div class="col">
+            <input type="number" step="0.01" name="hourlyRate" class="form-control" placeholder="Hourly Rate" required />
+        </div>
+        <div class="col">
+            <input type="text" name="username" class="form-control" placeholder="Username" required />
+        </div>
+        <div class="col">
+            <input type="password" name="password" class="form-control" placeholder="Password" required />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Add / Update Lecturer</button>
+</form>
 
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>LecturerID</th>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>Department</th>
-            <th>Hourly Rate</th>
-            <th>Username</th>
-            <th>Approved</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var lecturer in lecturers)
-        {
+<!-- Lecturer List -->
+@if (lecturers != null && lecturers.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead>
             <tr>
-                <td>@lecturer.LecturerID</td>
-                <td>@lecturer.FullName</td>
-                <td>@lecturer.Email</td>
-                <td>@lecturer.Department</td>
-
-                <td>
-                    <form asp-action="AddOrUpdateLecturer" method="post" class="d-flex">
-                        <input type="hidden" name="lecturerId" value="@lecturer.LecturerID" />
-                        <input type="hidden" name="fullName" value="@lecturer.FullName" />
-                        <input type="hidden" name="email" value="@lecturer.Email" />
-                        <input type="hidden" name="department" value="@lecturer.Department" />
-                        <input type="hidden" name="username" value="@lecturer.Username" />
-                        <input type="hidden" name="password" value="@lecturer.Password" />
-                        <input name="hourlyRate" type="number" step="0.01" value="@lecturer.HourlyRate" class="form-control me-2" style="width: 100px;" />
-                        <button type="submit" class="btn btn-sm btn-primary">Update</button>
-                    </form>
-                </td>
-
-                <td>@lecturer.Username</td>
-                <td>
-                    @if (!lecturer.IsApproved)
-                    {
-                        <form asp-action="ApproveLecturer" method="post">
-                            <input type="hidden" name="lecturerId" value="@lecturer.LecturerID" />
+                <th>ID</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Rate</th>
+                <th>Approved</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var l in lecturers)
+            {
+                <tr>
+                    <td>@l.LecturerID</td>
+                    <td>@l.FullName</td>
+                    <td>@l.Email</td>
+                    <td>@l.Department</td>
+                    <td>@l.HourlyRate.ToString("C")</td>
+                    <td>@(l.IsApproved ? "Yes" : "No")</td>
+                    <td>
+                        <form asp-action="ApproveLecturer" method="post" class="d-inline">
+                            <input type="hidden" name="lecturerId" value="@l.LecturerID" />
                             <button type="submit" class="btn btn-sm btn-success">Approve</button>
                         </form>
-                    }
-                    else
-                    {
-                        <span class="text-success">Approved</span>
-                    }
-                </td>
-                <td>
-                    <form asp-action="DeleteLecturer" method="post" onsubmit="return confirm('Are you sure you want to delete this lecturer?');">
-                        <input type="hidden" name="lecturerId" value="@lecturer.LecturerID" />
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                        <form asp-action="DeleteLecturer" method="post" class="d-inline">
+                            <input type="hidden" name="lecturerId" value="@l.LecturerID" />
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No lecturers found.</p>
+}

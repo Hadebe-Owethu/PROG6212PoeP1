@@ -1,35 +1,23 @@
 ﻿@{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Lecturer Login";
+    var message = TempData["Message"] as string;
 }
 
-<h2 class="mb-4">System Login</h2>
+<h2>Lecturer Login</h2>
 
-@if (ViewBag.Message != null)
+@if (!string.IsNullOrEmpty(message))
 {
-    <div class="alert alert-danger">@ViewBag.Message</div>
+    <div class="alert alert-warning">@message</div>
 }
 
-<form method="post" asp-action="Login">
+<form asp-action="Login" method="post">
     <div class="mb-3">
-        <label>Username</label>
+        <label for="username">Username</label>
         <input type="text" name="username" class="form-control" required />
     </div>
-
     <div class="mb-3">
-        <label>Password</label>
+        <label for="password">Password</label>
         <input type="password" name="password" class="form-control" required />
     </div>
-
-    <div class="mb-3">
-        <label>Role</label>
-        <select name="role" class="form-select" required>
-            <option value="">-- Select Role --</option>
-            <option value="Lecturer">Lecturer</option>
-            <option value="Coordinator">Coordinator</option>
-            <option value="AcademicManager">Academic Manager</option>
-            <option value="HR">HR</option>
-        </select>
-    </div>
-
     <button type="submit" class="btn btn-primary">Login</button>
 </form>

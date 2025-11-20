@@ -1,9 +1,13 @@
 ﻿@{
-    ViewData["Title"] = "Access denied";
+    ViewData["Title"] = "Access Denied";
 }
-<div class="alert alert-warning">
-    <strong>Access denied.</strong> You do not have permission to view this page.
+
+<div class="container mt-5 text-center">
+    <h2 class="text-danger">Access Denied</h2>
+    <p class="lead">You do not have permission to view this page.</p>
+    <p>Please make sure you are logged in with the correct role.</p>
+
+    <a asp-action="Login" asp-controller="Account" class="btn btn-primary mt-3">
+        Return to Login
+    </a>
 </div>
-<form asp-action="Login" method="get">
-    <button class="btn btn-secondary">Return to login</button>
-</form>

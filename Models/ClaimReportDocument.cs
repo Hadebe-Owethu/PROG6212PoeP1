@@ -1,14 +1,15 @@
 ﻿using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
 using ProgPOEP1.Models;
-using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
+
 public class ClaimReportDocument : IDocument
 {
-    private List<Claim> Claims;
+    private readonly List<Claim> _claims;
 
     public ClaimReportDocument(List<Claim> claims)
     {
-        Claims = claims;
+        _claims = claims ?? new List<Claim>();
     }
 
     public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
@@ -23,29 +24,31 @@ public class ClaimReportDocument : IDocument
             {
                 table.ColumnsDefinition(columns =>
                 {
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn(2);
+                    columns.ConstantColumn(120); // Claim ID
+                    columns.RelativeColumn();    // Lecturer ID
+                    columns.ConstantColumn(80);  // Hours
+                    columns.ConstantColumn(80);  // Rate
+                    columns.ConstantColumn(100); // Total
                 });
 
                 table.Header(header =>
                 {
-                    header.Cell().Text("ClaimID").Bold();
-                    header.Cell().Text("LecturerID").Bold();
-                    header.Cell().Text("Month").Bold();
+                    header.Cell().Text("Claim ID").Bold();
+                    header.Cell().Text("Lecturer").Bold();
                     header.Cell().Text("Hours").Bold();
+                    header.Cell().Text("Rate").Bold();
                     header.Cell().Text("Total").Bold();
                 });
 
-                foreach (var claim in Claims)
+                foreach (var claim in _claims)
                 {
-                    table.Cell().Text(claim.ClaimID);
-                    table.Cell().Text(claim.ContractorID);
-                    table.Cell().Text(claim.Month);
-                    table.Cell().Text(claim.HoursWorked.ToString());
-                    table.Cell().Text(claim.TotalAmount.ToString("F2"));
+                    var total = (claim?.HoursWorked ?? 0) * (claim?.HourlyRate ?? 0);
+
+                    table.Cell().Text(claim?.ClaimID ?? "N/A");
+                    table.Cell().Text(claim?.ContractorID ?? "N/A");
+                    table.Cell().Text(claim?.HoursWorked.ToString() ?? "0");
+                    table.Cell().Text(claim?.HourlyRate.ToString("C") ?? "R0.00");
+                    table.Cell().Text(total.ToString("C"));
                 }
             });
         });

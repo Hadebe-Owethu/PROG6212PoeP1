@@ -16,11 +16,13 @@ namespace ProgPOEP1.Controllers
             _context = context;
         }
 
+        // GET: Login page
         public IActionResult Login()
         {
             return View();
         }
 
+        // POST: Login
         [HttpPost]
         public async Task<IActionResult> Login(string username, string password)
         {
@@ -38,12 +40,13 @@ namespace ProgPOEP1.Controllers
             return View();
         }
 
-        // Filter support: optional statusFilter query parameter
+        // Lecturer Dashboard with optional status filter
         public async Task<IActionResult> Dashboard(string? statusFilter = null)
         {
             var lecturerId = HttpContext.Session.GetString("LecturerID");
             if (string.IsNullOrEmpty(lecturerId))
-                return RedirectToAction("Login");
+                return RedirectToAction("Login", "Account");
+
 
             var query = _context.Claims
                 .Where(c => c.ContractorID == lecturerId);
@@ -59,9 +62,12 @@ namespace ProgPOEP1.Controllers
             ViewBag.StatusFilter = statusFilter;
             ViewBag.Message = TempData["Message"];
             ViewBag.LecturerName = HttpContext.Session.GetString("LecturerName");
-            return View("ViewClaims");
+
+            // ✅ Always return Dashboard.cshtml
+            return View("Dashboard");
         }
 
+        // GET: Submit Claim
         public async Task<IActionResult> SubmitClaim()
         {
             var lecturerId = HttpContext.Session.GetString("LecturerID");
@@ -76,71 +82,74 @@ namespace ProgPOEP1.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SubmitClaim(string month, int hours, string notes, IFormFile? document)
+        public async Task<IActionResult> SubmitClaim(string month, int hours, string notes, IFormFile document)
         {
             var lecturerId = HttpContext.Session.GetString("LecturerID");
-            var lecturer = await _context.Lecturers.FirstOrDefaultAsync(l => l.LecturerID == lecturerId);
+            var hourlyRate = HttpContext.Session.GetString("HourlyRate");
 
-            if (lecturer == null)
-                return RedirectToAction("Login");
-
-            if (string.IsNullOrWhiteSpace(month) || hours <= 0 || hours > 180)
+            if (string.IsNullOrEmpty(lecturerId) || string.IsNullOrEmpty(hourlyRate))
             {
-                TempData["Message"] = "Invalid input. Hours must be between 1 and 180.";
-                return RedirectToAction("SubmitClaim");
+                TempData["Message"] = "Session expired. Please log in again.";
+                return RedirectToAction("Login", "Account");
+
             }
 
-            decimal rate = lecturer.HourlyRate;
-            string? documentPath = null;
-
-            if (document is { Length: > 0 })
+            if (hours < 1 || hours > 180)
             {
-                var ext = Path.GetExtension(document.FileName).ToLowerInvariant();
-                if (!new[] { ".pdf", ".docx", ".xlsx" }.Contains(ext))
-                {
-                    TempData["Message"] = "Invalid file type.";
-                    return RedirectToAction("SubmitClaim");
-                }
+                TempData["Message"] = "Hours must be between 1 and 180.";
+                return RedirectToAction("Dashboard");
+            }
 
-                var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "documents");
-                Directory.CreateDirectory(uploads);
-                var fileName = $"{Guid.NewGuid()}{ext}";
-                var filePath = Path.Combine(uploads, fileName);
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await document.CopyToAsync(stream);
-                documentPath = "/documents/" + fileName;
+            string filePath = null;
+            if (document != null && document.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "documents");
+                Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(document.FileName)}";
+                filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await document.CopyToAsync(stream);
+                }
             }
 
             var newClaim = new Claim
             {
-                ClaimID = "CLM" + Guid.NewGuid().ToString("N"),
-                ContractorID = lecturer.LecturerID,
+                ClaimID = Guid.NewGuid().ToString(),
+                ContractorID = lecturerId,
                 Month = month,
                 HoursWorked = hours,
-                HourlyRate = rate,
-                DocumentPath = documentPath ?? "",
-                Status = "Pending",
+                HourlyRate = decimal.Parse(hourlyRate),
                 Notes = notes,
-                CreatedAt = DateTime.UtcNow,
-                VerifiedAt = null,
-                ApprovedAt = null,
-                RejectedAt = null
+                DocumentPath = filePath,
+                Status = "Pending",
+                CreatedAt = DateTime.UtcNow
             };
 
-            await _context.Claims.AddAsync(newClaim);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.Claims.AddAsync(newClaim);
+                await _context.SaveChangesAsync();
+                TempData["Message"] = "Claim submitted successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Message"] = "Error submitting claim: " + ex.Message;
+            }
 
-            TempData["Message"] = $"Claim {newClaim.ClaimID} submitted.";
             return RedirectToAction("Dashboard");
         }
 
-        // Logout
+
+        // POST: Logout
         [HttpPost]
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            return RedirectToAction("Login", "Account");
+
         }
     }
 }
