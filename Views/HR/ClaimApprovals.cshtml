@@ -1,0 +1,60 @@
+﻿@model IEnumerable<ProgPOEP1.Models.Claim>
+
+@{
+    ViewData["Title"] = "Claim Approvals";
+}
+
+<h2>Claim Approvals</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Claim ID</th>
+            <th>Lecturer ID</th>
+            <th>Month</th>
+            <th>Hours Worked</th>
+            <th>Hourly Rate</th>
+            <th>Total Amount</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Notes</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var claim in Model)
+        {
+            <tr>
+                <td>@claim.ClaimID</td>
+                <td>@claim.ContractorID</td>
+                <td>@claim.Month</td>
+                <td>@claim.HoursWorked</td>
+                <td>R @claim.HourlyRate</td>
+                <td>R @claim.TotalAmount</td>
+                <td>@claim.Status</td>
+                <td>@claim.CreatedAt.ToString("yyyy-MM-dd")</td>
+                <td>@claim.Notes</td>
+                <td>
+                    <form asp-action="ApproveClaim" method="post" style="display:inline;">
+                        <input type="hidden" name="claimId" value="@claim.ClaimID" />
+                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                    </form>
+                    <form asp-action="RejectClaim" method="post" style="display:inline;">
+                        <input type="hidden" name="claimId" value="@claim.ClaimID" />
+                        <input type="text" name="comments" placeholder="Reason" class="form-control form-control-sm mb-1" />
+                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -88,16 +88,16 @@
                                href="@Url.Action("Dashboard", "HR")">
                                 <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                             </a>
-                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageLecturers" ? "active" : "")"
-                               href="@Url.Action("ManageLecturers", "HR")">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "LecturerManagement" ? "active" : "")"
+                               href="@Url.Action("LecturerManagement", "HR")">
                                 <i class="fas fa-users me-2"></i>Manage Lecturers
                             </a>
-                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ViewClaims" ? "active" : "")"
-                               href="@Url.Action("ViewClaims", "HR")">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ClaimApprovals" ? "active" : "")"
+                               href="@Url.Action("ClaimApprovals", "HR")">
                                 <i class="fas fa-file-invoice me-2"></i>View Claims
                             </a>
-                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Reports" ? "active" : "")"
-                               href="@Url.Action("Reports", "HR")">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "CreateLecturer" ? "active" : "")"
+                               href="@Url.Action("CreateLecturer", "HR")">
                                 <i class="fas fa-chart-bar me-2"></i>Reports
                             </a>
                         }

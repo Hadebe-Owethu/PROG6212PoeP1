@@ -34,6 +34,7 @@ namespace ProgPOEP1.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // Navigation property for claims
-        public virtual ICollection<Claim> Claims { get; set; }
+        public virtual ICollection<Claim> Claims { get; set; } = new List<Claim>();
+
     }
 }

@@ -52,6 +52,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/HR/ClaimApprovals.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSFJcQ2xhaW1BcHByb3ZhbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/HR/CreateLecturer.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSFJcQ3JlYXRlTGVjdHVyZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -60,20 +64,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSFJcRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/HR/EditLecturer.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSFJcRWRpdExlY3R1cmVyLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/HR/ManageLecturers.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSFJcTWFuYWdlTGVjdHVyZXJzLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/HR/Reports.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSFJcUmVwb3J0cy5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/HR/ViewClaims.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSFJcVmlld0NsYWltcy5jc2h0bWw=
+[C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/HR/LecturerManagement.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSFJcTGVjdHVyZXJNYW5hZ2VtZW50LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/Lecturer/Dashboard.cshtml]

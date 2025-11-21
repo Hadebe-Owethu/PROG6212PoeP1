@@ -21,12 +21,27 @@ namespace ProgPOEP1.Controllers
             return HttpContext.Session.GetString("UserRole") == "HR";
         }
 
-        public IActionResult LecturerManagement()
+        public IActionResult Dashboard()
         {
             if (!IsHRLoggedIn())
             {
+                TempData["ErrorMessage"] = "Access denied. Please login as HR.";
                 return RedirectToAction("Login", "Account");
             }
+
+            // Make sure these are being set correctly
+            ViewBag.UserName = HttpContext.Session.GetString("UserName");
+            ViewBag.TotalLecturers = GetAllLecturers().Count;
+            ViewBag.PendingClaims = GetPendingClaims().Count;
+
+            return View();
+        }
+
+        [Route("ManageLectures")]
+        public IActionResult LecturerManagement()
+        {
+            if (!IsHRLoggedIn())
+                return RedirectToAction("Login", "Account");
 
             var lecturers = GetAllLecturers();
             return View(lecturers);

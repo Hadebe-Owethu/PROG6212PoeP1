@@ -1,0 +1,44 @@
+﻿@model IEnumerable<ProgPOEP1.Models.Lecturer>
+
+@{
+    ViewData["Title"] = "Lecturer Management";
+}
+
+<h2>Lecturer Management</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Lecturer ID</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Hourly Rate</th>
+            <th>Username</th>
+            <th>Approved</th>
+            <th>Created At</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var lecturer in Model)
+        {
+            <tr>
+                <td>@lecturer.LecturerID</td>
+                <td>@lecturer.FullName</td>
+                <td>@lecturer.Email</td>
+                <td>@lecturer.Department</td>
+                <td>R @lecturer.HourlyRate</td>
+                <td>@lecturer.Username</td>
+                <td>@(lecturer.IsApproved ? "Yes" : "No")</td>
+                <td>@lecturer.CreatedAt.ToString("yyyy-MM-dd")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a class="btn btn-primary" href="/HR/CreateLecturer">Create New Lecturer</a>
