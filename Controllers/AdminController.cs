@@ -197,7 +197,7 @@ namespace ProgPOEP1.Controllers
         }
 
 
-        private List<Claim> GetApprovedClaims()
+        public List<Claim> GetApprovedClaims()
         {
             var claims = new List<Claim>();
 

@@ -338,5 +338,6 @@ namespace ProgPOEP1.Controllers
             public decimal TotalAmount { get; set; }
         }
 
+
     }
 }
