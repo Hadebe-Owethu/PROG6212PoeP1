@@ -1,56 +1,31 @@
-﻿using QuestPDF.Fluent;
-using QuestPDF.Infrastructure;
-using ProgPOEP1.Models;
-using System.Collections.Generic;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
-public class ClaimReportDocument : IDocument
+namespace ProgPOEP1.Models
 {
-    private readonly List<Claim> _claims;
-
-    public ClaimReportDocument(List<Claim> claims)
+    public class ClaimReportDocument
     {
-        _claims = claims ?? new List<Claim>();
-    }
+        [Key]
+        public int DocumentID { get; set; }
 
-    public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
+        [Required]
+        public string ClaimID { get; set; }
 
-    public void Compose(IDocumentContainer container)
-    {
-        container.Page(page =>
-        {
-            page.Margin(20);
-            page.Header().Text("Approved Claims Report").FontSize(20).Bold();
-            page.Content().Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.ConstantColumn(120); // Claim ID
-                    columns.RelativeColumn();    // Lecturer ID
-                    columns.ConstantColumn(80);  // Hours
-                    columns.ConstantColumn(80);  // Rate
-                    columns.ConstantColumn(100); // Total
-                });
+        [Required]
+        public string DocumentName { get; set; }
 
-                table.Header(header =>
-                {
-                    header.Cell().Text("Claim ID").Bold();
-                    header.Cell().Text("Lecturer").Bold();
-                    header.Cell().Text("Hours").Bold();
-                    header.Cell().Text("Rate").Bold();
-                    header.Cell().Text("Total").Bold();
-                });
+        [Required]
+        public string FilePath { get; set; }
 
-                foreach (var claim in _claims)
-                {
-                    var total = (claim?.HoursWorked ?? 0) * (claim?.HourlyRate ?? 0);
+        public string FileType { get; set; }
 
-                    table.Cell().Text(claim?.ClaimID ?? "N/A");
-                    table.Cell().Text(claim?.ContractorID ?? "N/A");
-                    table.Cell().Text(claim?.HoursWorked.ToString() ?? "0");
-                    table.Cell().Text(claim?.HourlyRate.ToString("C") ?? "R0.00");
-                    table.Cell().Text(total.ToString("C"));
-                }
-            });
-        });
+        public long FileSize { get; set; }
+
+        public DateTime UploadedAt { get; set; } = DateTime.Now;
+
+        public string UploadedBy { get; set; }
+
+        // Navigation property
+        public virtual Claim Claim { get; set; }
     }
 }

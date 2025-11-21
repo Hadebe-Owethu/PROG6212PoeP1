@@ -1,0 +1,105 @@
+﻿@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">Reports & Analytics</h2>
+        <div>
+            <a href="@Url.Action("GeneratePdfReport", "HR", new { reportType = "monthly" })"
+               class="btn btn-primary me-2" target="_blank">
+                <i class="fas fa-file-pdf me-2"></i>Monthly PDF
+            </a>
+            <a href="@Url.Action("GeneratePdfReport", "HR", new { reportType = "lecturer" })"
+               class="btn btn-success" target="_blank">
+                <i class="fas fa-file-pdf me-2"></i>Lecturer PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Monthly Report -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Monthly Claims Report</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.MonthlyReport != null && ViewBag.MonthlyReport.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Total Claims</th>
+                                        <th>Total Hours</th>
+                                        <th>Total Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in ViewBag.MonthlyReport)
+                                    {
+                                        <tr>
+                                            <td>@item.Month</td>
+                                            <td>@item.TotalClaims</td>
+                                            <td>@item.TotalHours</td>
+                                            <td class="fw-bold text-success">R @item.TotalAmount.ToString("F2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">No monthly data available</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lecturer Report -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Lecturer Performance Report</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.LecturerReport != null && ViewBag.LecturerReport.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Lecturer</th>
+                                        <th>Total Claims</th>
+                                        <th>Total Hours</th>
+                                        <th>Total Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in ViewBag.LecturerReport)
+                                    {
+                                        <tr>
+                                            <td>@item.LecturerName</td>
+                                            <td>@item.TotalClaims</td>
+                                            <td>@item.TotalHours</td>
+                                            <td class="fw-bold text-success">R @item.TotalAmount.ToString("F2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center">No lecturer data available</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

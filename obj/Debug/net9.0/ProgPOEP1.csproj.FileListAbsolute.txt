@@ -951,3 +951,5 @@ C:\Users\lab_services_student\Documents\Class Work Prog\Class Work Prog\PROG6212
 C:\Users\lab_services_student\Documents\Class Work Prog\Class Work Prog\PROG6212PoeP1\obj\Debug\net9.0\ProgPOEP1.pdb
 C:\Users\lab_services_student\Documents\Class Work Prog\Class Work Prog\PROG6212PoeP1\obj\Debug\net9.0\ProgPOEP1.genruntimeconfig.cache
 C:\Users\lab_services_student\Documents\Class Work Prog\Class Work Prog\PROG6212PoeP1\obj\Debug\net9.0\ref\ProgPOEP1.dll
+C:\Users\lab_services_student\Documents\Class Work Prog\Class Work Prog\PROG6212PoeP1\bin\Debug\net9.0\BouncyCastle.Cryptography.dll
+C:\Users\lab_services_student\Documents\Class Work Prog\Class Work Prog\PROG6212PoeP1\bin\Debug\net9.0\itextsharp.dll

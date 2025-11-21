@@ -1,18 +1,29 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProgPOEP1.Models
 {
     public class ClaimApproval
     {
-        public string ApprovalID { get; set; } 
-        public string ClaimID { get; set; }  
-        public string LecturerID { get; set; } 
-        public DateTime ApprovalDate { get; set; }
+        [Key]
+        public int ApprovalID { get; set; }
+
+        [Required]
+        [ForeignKey("Claim")]
+        public string ClaimID { get; set; }
+
+        [Required]
+        public string ApprovedBy { get; set; }
+
+        // Use string for now; enum optional
+        [Required]
+        public string Action { get; set; } // Verified, Approved, Rejected
+
+        public DateTime Timestamp { get; set; } = DateTime.Now;
+
         public string Comments { get; set; }
 
-        // Navigation properties
-        public Claim Claim { get; set; }
-        public Lecturer Lecturer { get; set; }
+        public virtual Claim Claim { get; set; }
     }
-
 }

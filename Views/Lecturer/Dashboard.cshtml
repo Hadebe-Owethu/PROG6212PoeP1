@@ -1,89 +1,143 @@
 ﻿@{
     ViewData["Title"] = "Lecturer Dashboard";
-    var claims = ViewBag.Claims as List<ProgPOEP1.Models.Claim>;
-    var statusFilter = ViewBag.StatusFilter as string;
-    var message = ViewBag.Message as string;
-    var lecturerName = ViewBag.LecturerName as string;
 }
 
-<h2 class="mb-3">Lecturer Dashboard</h2>
-<p>Welcome, @lecturerName</p>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-primary">Welcome, @ViewBag.LecturerName!</h2>
+            <p class="text-muted">Lecturer Dashboard - @ViewBag.Department Department</p>
+        </div>
+        <a href="@Url.Action("SubmitClaim", "Lecturer")" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Submit New Claim
+        </a>
+    </div>
 
-@if (!string.IsNullOrEmpty(message))
-{
-    <div class="alert alert-info">@message</div>
-}
-
-<form method="get" asp-action="Dashboard" class="mb-3">
-    <label for="statusFilter">Filter by Status:</label>
-    <select name="statusFilter" class="form-select" onchange="this.form.submit()">
-        <option value="">-- All --</option>
-        <option value="Pending" selected="@("Pending" == statusFilter)">Pending</option>
-        <option value="Verified" selected="@("Verified" == statusFilter)">Verified</option>
-        <option value="Approved" selected="@("Approved" == statusFilter)">Approved</option>
-        <option value="Rejected" selected="@("Rejected" == statusFilter)">Rejected</option>
-    </select>
-</form>
-
-@if (claims != null && claims.Any())
-{
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>Claim ID</th>
-                <th>Month</th>
-                <th>Hours</th>
-                <th>Rate</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Notes</th>
-                <th>Document</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var claim in claims)
-            {
-                <tr>
-                    <td>@claim.ClaimID</td>
-                    <td>@claim.Month</td>
-                    <td>@claim.HoursWorked</td>
-                    <td>@claim.HourlyRate.ToString("C")</td>
-                    <td>@(claim.HoursWorked* claim.HourlyRate).ToString("C")</td>
-                    <td>
-                        <span class="badge bg-@GetStatusColor(claim.Status)">
-                            @claim.Status
-                        </span>
-                    </td>
-                    <td>@claim.CreatedAt.ToShortDateString()</td>
-                    <td>@claim.Notes</td>
-                    <td>
-                        @if (!string.IsNullOrEmpty(claim.DocumentPath))
-                        {
-                            <a href="@claim.DocumentPath" target="_blank">View</a>
-                        }
-                        else
-                        {
-                            <span class="text-muted">No file</span>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>No claims found.</p>
-}
-
-@functions {
-    string GetStatusColor(string status) => status switch
+    @if (ViewBag.Message != null)
     {
-        "Pending" => "secondary",
-        "Verified" => "info",
-        "Approved" => "success",
-        "Rejected" => "danger",
-        _ => "dark"
-    };
+        <div class="alert alert-info alert-dismissible fade show">
+            @ViewBag.Message
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Claims</h6>
+                    <h4>@(ViewBag.TotalClaims ?? 0)</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Approved</h6>
+                    <h4>@(ViewBag.ApprovedCount ?? 0)</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Pending</h6>
+                    <h4>@(ViewBag.PendingCount ?? 0)</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Hourly Rate</h6>
+                    <h4>R @(ViewBag.HourlyRate ?? "0.00")</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Claims Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Your Claims</h5>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.Claims != null && ViewBag.Claims.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Hours</th>
+                                <th>Rate</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Date Submitted</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var claim in ViewBag.Claims)
+                            {
+                                <tr>
+                                    <td>@claim.Month</td>
+                                    <td>@claim.HoursWorked</td>
+                                    <td>R @claim.HourlyRate.ToString("F2")</td>
+                                    <td class="fw-bold text-success">R @claim.TotalAmount.ToString("F2")</td>
+                                    <td>
+                                        @if (claim.Status == "Approved")
+                                        {
+                                            <span class="badge bg-success">@claim.Status</span>
+                                        }
+                                        else if (claim.Status == "Rejected")
+                                        {
+                                            <span class="badge bg-danger">@claim.Status</span>
+                                        }
+                                        else if (claim.Status == "Verified")
+                                        {
+                                            <span class="badge bg-info">@claim.Status</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning">@claim.Status</span>
+                                        }
+                                    </td>
+                                    <td>@claim.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(claim.Notes))
+                                        {
+                                            <small>@(claim.Notes.Length > 50 ? claim.Notes.Substring(0, 50) + "..." : claim.Notes)</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5>No claims found</h5>
+                    <p class="text-muted">You haven't submitted any claims yet.</p>
+                    <a href="@Url.Action("SubmitClaim", "Lecturer")" class="btn btn-primary">Submit Your First Claim</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            console.log("Lecturer dashboard loaded successfully");
+        });
+    </script>
 }

@@ -1,155 +1,322 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using ProgPOEP1.Models;
-using ProgPOEP1.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 using System.IO;
+using System.Linq; // for Count
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using ProgPOEP1.Models;
+using ProgPOEP1.ViewModels;
 
 namespace ProgPOEP1.Controllers
 {
     public class LecturerController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public LecturerController(AppDbContext context)
+        public LecturerController(IConfiguration configuration)
         {
-            _context = context;
+            _configuration = configuration;
         }
 
-        // GET: Login page
-        public IActionResult Login()
+        private string ConnectionString => _configuration.GetConnectionString("DefaultConnection");
+
+        private bool IsLecturerLoggedIn()
         {
-            return View();
+            var userRole = HttpContext.Session.GetString("UserRole");
+            var userId = HttpContext.Session.GetString("UserId");
+            Console.WriteLine($"IsLecturerLoggedIn check - UserRole: {userRole}, UserId: {userId}");
+            return userRole == "Lecturer" && !string.IsNullOrEmpty(userId);
         }
 
-        // POST: Login
-        [HttpPost]
-        public async Task<IActionResult> Login(string username, string password)
+        public IActionResult Dashboard()
         {
-            var lecturer = await _context.Lecturers
-                .FirstOrDefaultAsync(l => l.Username == username && l.Password == password && l.IsApproved);
+            Console.WriteLine("=== DASHBOARD ACCESSED ===");
 
-            if (lecturer != null)
+            if (!IsLecturerLoggedIn())
             {
-                HttpContext.Session.SetString("LecturerID", lecturer.LecturerID);
-                HttpContext.Session.SetString("LecturerName", lecturer.FullName);
-                return RedirectToAction("Dashboard");
+                TempData["ErrorMessage"] = "Please login to access the dashboard.";
+                return RedirectToAction("Login", "Account");
             }
 
-            ViewBag.Message = "Invalid credentials or not approved.";
-            return View();
-        }
-
-        // Lecturer Dashboard with optional status filter
-        public async Task<IActionResult> Dashboard(string? statusFilter = null)
-        {
-            var lecturerId = HttpContext.Session.GetString("LecturerID");
-            if (string.IsNullOrEmpty(lecturerId))
-                return RedirectToAction("Login", "Account");
-
-
-            var query = _context.Claims
-                .Where(c => c.ContractorID == lecturerId);
-
-            if (!string.IsNullOrWhiteSpace(statusFilter))
-                query = query.Where(c => c.Status == statusFilter);
-
-            var claims = await query
-                .OrderByDescending(c => c.CreatedAt)
-                .ToListAsync();
-
-            ViewBag.Claims = claims;
-            ViewBag.StatusFilter = statusFilter;
-            ViewBag.Message = TempData["Message"];
-            ViewBag.LecturerName = HttpContext.Session.GetString("LecturerName");
-
-            // ✅ Always return Dashboard.cshtml
-            return View("Dashboard");
-        }
-
-        // GET: Submit Claim
-        public async Task<IActionResult> SubmitClaim()
-        {
-            var lecturerId = HttpContext.Session.GetString("LecturerID");
-            var lecturer = await _context.Lecturers.FirstOrDefaultAsync(l => l.LecturerID == lecturerId);
-
-            if (lecturer == null)
-                return RedirectToAction("Login");
-
-            ViewBag.HourlyRate = lecturer.HourlyRate;
-            ViewBag.FullName = lecturer.FullName;
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> SubmitClaim(string month, int hours, string notes, IFormFile document)
-        {
-            var lecturerId = HttpContext.Session.GetString("LecturerID");
+            var userId = HttpContext.Session.GetString("UserId");
+            var userName = HttpContext.Session.GetString("UserName");
             var hourlyRate = HttpContext.Session.GetString("HourlyRate");
+            var department = HttpContext.Session.GetString("UserDepartment");
 
-            if (string.IsNullOrEmpty(lecturerId) || string.IsNullOrEmpty(hourlyRate))
+            ViewBag.LecturerName = userName;
+            ViewBag.HourlyRate = hourlyRate;
+            ViewBag.Department = department;
+
+            var claims = GetLecturerClaims(userId);
+            ViewBag.Claims = claims;
+            ViewBag.TotalClaims = claims.Count;
+            ViewBag.ApprovedCount = claims.Count(c => c.Status == "Approved");
+            ViewBag.PendingCount = claims.Count(c => c.Status == "Pending" || c.Status == "Verified");
+
+            if (TempData["LoginMessage"] != null)
+                ViewBag.Message = TempData["LoginMessage"];
+            else if (TempData["Message"] != null)
+                ViewBag.Message = TempData["Message"];
+
+            return View();
+        }
+
+        public IActionResult SubmitClaim()
+        {
+            Console.WriteLine("=== SUBMIT CLAIM GET ===");
+
+            if (!IsLecturerLoggedIn())
             {
-                TempData["Message"] = "Session expired. Please log in again.";
+                TempData["ErrorMessage"] = "Please login to submit a claim.";
                 return RedirectToAction("Login", "Account");
-
             }
 
-            if (hours < 1 || hours > 180)
+            var userId = HttpContext.Session.GetString("UserId");
+            var userName = HttpContext.Session.GetString("UserName");
+            var hourlyRate = HttpContext.Session.GetString("HourlyRate");
+            var department = HttpContext.Session.GetString("UserDepartment");
+
+            if (string.IsNullOrEmpty(userId))
             {
-                TempData["Message"] = "Hours must be between 1 and 180.";
+                TempData["ErrorMessage"] = "User session not found. Please login again.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            if (string.IsNullOrEmpty(hourlyRate))
+            {
+                TempData["ErrorMessage"] = "Hourly rate not found in session. Please contact HR.";
                 return RedirectToAction("Dashboard");
             }
 
-            string filePath = null;
-            if (document != null && document.Length > 0)
+            ViewBag.LecturerName = userName;
+            ViewBag.HourlyRate = decimal.Parse(hourlyRate);
+            ViewBag.Department = department;
+
+            var vm = new ClaimSubmissionViewModel(); 
+            return View(vm);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SubmitClaim(ClaimSubmissionViewModel vm)
+        {
+            if (!IsLecturerLoggedIn())
             {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "documents");
-                Directory.CreateDirectory(uploadsFolder);
-
-                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(document.FileName)}";
-                filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await document.CopyToAsync(stream);
-                }
+                TempData["ErrorMessage"] = "Please login to submit a claim.";
+                return RedirectToAction("Login", "Account");
             }
 
-            var newClaim = new Claim
+            if (ModelState.IsValid)
             {
-                ClaimID = Guid.NewGuid().ToString(),
-                ContractorID = lecturerId,
-                Month = month,
-                HoursWorked = hours,
-                HourlyRate = decimal.Parse(hourlyRate),
-                Notes = notes,
-                DocumentPath = filePath,
-                Status = "Pending",
-                CreatedAt = DateTime.UtcNow
-            };
+                var userId = HttpContext.Session.GetString("UserId");
+                var hourlyRateStr = HttpContext.Session.GetString("HourlyRate");
 
+                var claim = new Claim
+                {
+                    ClaimID = "CLM-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
+                    ContractorID = userId,
+                    HourlyRate = decimal.Parse(hourlyRateStr),
+                    Month = vm.Month,
+                    HoursWorked = vm.HoursWorked,
+                    Notes = vm.Notes,
+                    Status = "Pending",
+                    CreatedAt = DateTime.Now,
+                    Lecturer = null // prevent validation
+                };
+
+                // Handle file upload
+                if (vm.DocumentFile != null && vm.DocumentFile.Length > 0)
+                {
+                    var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                    Directory.CreateDirectory(uploads);
+                    var safeFileName = Path.GetFileName(vm.DocumentFile.FileName);
+                    var filePath = Path.Combine(uploads, safeFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        vm.DocumentFile.CopyTo(stream);
+                    }
+
+                    claim.DocumentPath = "/uploads/" + safeFileName;
+                }
+                else
+                {
+                    claim.DocumentPath = ""; // safe default
+                }
+
+                var result = SaveClaimToDatabase(claim);
+
+                if (result)
+                {
+                    TempData["Message"] = "Claim submitted successfully!";
+                    return RedirectToAction("Dashboard");
+                }
+
+                ModelState.AddModelError("", "Error saving claim. Please try again.");
+            }
+
+            return View(vm);
+        }
+
+
+        private bool SaveClaimToDatabase(Claim claim)
+        {
             try
             {
-                await _context.Claims.AddAsync(newClaim);
-                await _context.SaveChangesAsync();
-                TempData["Message"] = "Claim submitted successfully.";
+                Console.WriteLine("=== SAVE CLAIM TO DATABASE ===");
+
+                using (var connection = new SqlConnection(ConnectionString))
+                {
+                    connection.Open();
+                    Console.WriteLine("Database connection opened successfully");
+
+                    if (string.IsNullOrEmpty(claim.ClaimID))
+                        claim.ClaimID = "CLM-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+
+                    var query = @"
+                        INSERT INTO Claims (
+                            ClaimID, 
+                            ContractorID, 
+                            Month, 
+                            HoursWorked, 
+                            HourlyRate, 
+                            DocumentPath, 
+                            Status, 
+                            CreatedAt, 
+                            Notes
+                        ) VALUES (
+                            @ClaimID, 
+                            @ContractorID, 
+                            @Month, 
+                            @HoursWorked, 
+                            @HourlyRate, 
+                            @DocumentPath, 
+                            @Status, 
+                            @CreatedAt, 
+                            @Notes
+                        )";
+
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@ClaimID", claim.ClaimID);
+                        command.Parameters.AddWithValue("@ContractorID", claim.ContractorID);
+                        command.Parameters.AddWithValue("@Month", claim.Month);
+                        command.Parameters.AddWithValue("@HoursWorked", claim.HoursWorked);
+                        command.Parameters.AddWithValue("@HourlyRate", claim.HourlyRate);
+                        command.Parameters.AddWithValue("@DocumentPath", claim.DocumentPath ?? "");
+                        command.Parameters.AddWithValue("@Status", claim.Status ?? "Pending");
+                        command.Parameters.AddWithValue("@CreatedAt", claim.CreatedAt == default ? DateTime.Now : claim.CreatedAt);
+                        command.Parameters.AddWithValue("@Notes", claim.Notes ?? "");
+
+                        var rowsAffected = command.ExecuteNonQuery();
+                        Console.WriteLine($"Rows affected: {rowsAffected}");
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                Console.WriteLine($"❌ SQL Error saving claim: {sqlEx.Message}");
+                return false;
             }
             catch (Exception ex)
             {
-                TempData["Message"] = "Error submitting claim: " + ex.Message;
+                Console.WriteLine($"❌ General Error saving claim: {ex.Message}");
+                return false;
             }
-
-            return RedirectToAction("Dashboard");
         }
 
+        private List<Claim> GetLecturerClaims(string contractorId)
+        {
+            var claims = new List<Claim>();
 
-        // POST: Logout
-        [HttpPost]
+            try
+            {
+                using (var connection = new SqlConnection(ConnectionString))
+                {
+                    connection.Open();
+                    var query = @"
+                        SELECT ClaimID, Month, HoursWorked, HourlyRate, TotalAmount, Status, CreatedAt, Notes
+                        FROM Claims 
+                        WHERE ContractorID = @ContractorID
+                        ORDER BY CreatedAt DESC";
+
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@ContractorID", contractorId);
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                claims.Add(new Claim
+                                {
+                                    ClaimID = reader["ClaimID"].ToString(),
+                                    Month = reader["Month"].ToString(),
+                                    HoursWorked = Convert.ToDecimal(reader["HoursWorked"]),
+                                    HourlyRate = Convert.ToDecimal(reader["HourlyRate"]),
+                                    TotalAmount = Convert.ToDecimal(reader["TotalAmount"]),
+                                    Status = reader["Status"].ToString(),
+                                    CreatedAt = Convert.ToDateTime(reader["CreatedAt"]),
+                                    Notes = reader["Notes"]?.ToString() ?? ""
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting claims: {ex.Message}");
+            }
+
+            return claims;
+        }
+
+        public IActionResult MyClaims()
+        {
+            if (!IsLecturerLoggedIn())
+                return RedirectToAction("Login", "Account");
+
+            var lecturerId = HttpContext.Session.GetString("UserId");
+            var claims = GetLecturerClaims(lecturerId);
+            return View(claims);
+        }
+
+        public IActionResult DebugSession()
+        {
+            var sessionData = new
+            {
+                UserId = HttpContext.Session.GetString("UserId"),
+                UserName = HttpContext.Session.GetString("UserName"),
+                UserRole = HttpContext.Session.GetString("UserRole"),
+                HourlyRate = HttpContext.Session.GetString("HourlyRate"),
+                UserDepartment = HttpContext.Session.GetString("UserDepartment"),
+                IsLecturerLoggedIn = IsLecturerLoggedIn(),
+                SessionId = HttpContext.Session.Id
+            };
+
+            Console.WriteLine("=== SESSION DEBUG ===");
+            Console.WriteLine($"UserId: {sessionData.UserId}");
+            Console.WriteLine($"UserName: {sessionData.UserName}");
+            Console.WriteLine($"UserRole: {sessionData.UserRole}");
+            Console.WriteLine($"HourlyRate: {sessionData.HourlyRate}");
+            Console.WriteLine($"UserDepartment: {sessionData.UserDepartment}");
+            Console.WriteLine($"IsLecturerLoggedIn: {sessionData.IsLecturerLoggedIn}");
+            Console.WriteLine($"SessionId: {sessionData.SessionId}");
+
+            return Json(sessionData);
+        }
+
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
+            TempData["Message"] = "You have been logged out successfully.";
             return RedirectToAction("Login", "Account");
-
         }
     }
 }

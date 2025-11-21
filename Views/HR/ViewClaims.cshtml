@@ -1,0 +1,98 @@
+﻿@{
+    ViewData["Title"] = "View All Claims";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">All Claims</h2>
+        <span class="badge bg-primary fs-6">Welcome, @ViewBag.UserName</span>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Claims Management</h5>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.Claims != null && ViewBag.Claims.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Lecturer</th>
+                                <th>Month</th>
+                                <th>Hours</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var claim in ViewBag.Claims)
+                            {
+                                <tr>
+                                    <td>@claim.Contractor?.FullName</td>
+                                    <td>@claim.Month</td>
+                                    <td>@claim.HoursWorked</td>
+                                    <td>R @claim.TotalAmount.ToString("F2")</td>
+                                    <td>
+                                        <span class="badge bg-@(claim.Status == "Approved" ? "success" : claim.Status == "Rejected" ? "danger" : claim.Status == "Verified" ? "info" : "warning")">
+                                            @claim.Status
+                                        </span>
+                                    </td>
+                                    <td>@claim.ClaimDate.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        @if (claim.Status == "Pending")
+                                        {
+                                            <button class="btn btn-sm btn-success update-status"
+                                                    data-id="@claim.ClaimID" data-status="Approved">
+                                                <i class="fas fa-check me-1"></i>Approve
+                                            </button>
+                                            <button class="btn btn-sm btn-danger update-status"
+                                                    data-id="@claim.ClaimID" data-status="Rejected">
+                                                <i class="fas fa-times me-1"></i>Reject
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center">No claims found</p>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('.update-status').click(function() {
+                const id = $(this).data('id');
+                const status = $(this).data('status');
+
+                if (confirm(`Are you sure you want to ${status.toLowerCase()} this claim?`)) {
+                    $.post('@Url.Action("UpdateClaimStatus", "HR")', {
+                        claimId: id,
+                        status: status
+                    })
+                    .done(function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    })
+                    .fail(function() {
+                        alert('Error updating claim status');
+                    });
+                }
+            });
+        });
+    </script>
+}
