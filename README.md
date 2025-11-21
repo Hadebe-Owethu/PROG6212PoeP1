@@ -1,3 +1,18 @@
-# PROG6212PoeP1
-We're building a front-end prototype for the Contract Monthly Claim System (CMCS) using ASP.NET Core MVC. The goal is to design a clean, user-friendly interface where lecturers can submit monthly claims, coordinators can review and approve them, and admins can view summaries. We're not implementing backend logic—just focusing on Razor Views, controller stubs, and model classes to simulate the structure and flow of a real application. Youtube link: https://youtu.be/FYwt7YjMejA
+Part 3 focused on building out the ASP.NET Core MVC structure of the project. The goal was to establish a clean separation of concerns between Models, Views, and Controllers, ensuring the application is both maintainable and scalable.
+
+Key highlights:
+
+Controllers: Implemented role-specific controllers (e.g., HRController, LecturerController, AdminController) to handle business logic and enforce session-based access control.
+
+Models: Defined strong data models for entities like Lecturer and Claim, ensuring consistent mapping between the database and application logic.
+
+Views: Created Razor views for dashboards, claim submissions, and management pages, with dynamic data passed through ViewBag and ViewData.
+
+Navigation & Access Control: Integrated session checks and role-based redirects to secure different parts of the system.
+
+Error Handling & Feedback: Used TempData and validation messages to provide clear feedback to users during workflows like claim submission and lecturer creation.
+
+This part established the core MVC foundation of the project, enabling structured workflows and preparing the system for further enhancements like reporting and admin tools. 
+
+Youtube link: https://youtu.be/FYwt7YjMejA
 
