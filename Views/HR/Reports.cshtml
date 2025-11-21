@@ -1,0 +1,60 @@
+﻿@{
+    ViewData["Title"] = "HR Reports";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">HR Reports</h2>
+        <span class="badge bg-success fs-6">Welcome, @ViewBag.UserName</span>
+    </div>
+    @if (ViewBag.ClaimSummary != null && ViewBag.ClaimSummary.Count > 0)
+    {
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Lecturer</th>
+                        <th>Total Claims</th>
+                        <th>Total Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var summary in ViewBag.ClaimSummary)
+                    {
+                        <tr>
+                            <td>@summary.LecturerName</td>
+                            <td>@summary.TotalClaims</td>
+                            <td>R @summary.TotalAmount.ToString("F2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted text-center">No claim summary data available</p>
+    }
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show">
+            @ViewBag.Message
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">Reports Section</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">This page will display HR-specific reports such as claim summaries, lecturer activity, and approval stats.</p>
+
+            <!-- Placeholder for future report tables -->
+            <div class="alert alert-warning">
+                No reports available yet. This section is under development.
+            </div>
+        </div>
+    </div>
+</div>

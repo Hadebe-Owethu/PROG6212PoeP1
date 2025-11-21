@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ProgPOEP1")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e440f2c9dcff5c2833bcba3e1c4e399342384e68")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a43a850a1b42fa106b9f03084bcd6777ca18d382")]
 [assembly: System.Reflection.AssemblyProductAttribute("ProgPOEP1")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ProgPOEP1")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

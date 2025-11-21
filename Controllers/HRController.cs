@@ -29,7 +29,6 @@ namespace ProgPOEP1.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // Make sure these are being set correctly
             ViewBag.UserName = HttpContext.Session.GetString("UserName");
             ViewBag.TotalLecturers = GetAllLecturers().Count;
             ViewBag.PendingClaims = GetPendingClaims().Count;
@@ -129,7 +128,6 @@ namespace ProgPOEP1.Controllers
                 {
                     connection.Open();
 
-                    // Update claim status to Approved
                     var query = "UPDATE Claims SET Status = 'Approved' WHERE ClaimID = @ClaimId";
                     using (var command = new SqlCommand(query, connection))
                     {
@@ -169,7 +167,6 @@ namespace ProgPOEP1.Controllers
                 {
                     connection.Open();
 
-                    // Update claim status to Rejected
                     var query = "UPDATE Claims SET Status = 'Rejected', Notes = @Notes WHERE ClaimID = @ClaimId";
                     using (var command = new SqlCommand(query, connection))
                     {
@@ -266,7 +263,7 @@ namespace ProgPOEP1.Controllers
                                 claims.Add(new Claim
                                 {
                                     ClaimID = reader["ClaimID"].ToString(),
-                                    ContractorID = reader["ContractorID"].ToString(), // Changed from LecturerID to ContractorID
+                                    ContractorID = reader["ContractorID"].ToString(), 
                                     Month = reader["Month"].ToString(),
                                     HoursWorked = Convert.ToDecimal(reader["HoursWorked"]),
                                     HourlyRate = Convert.ToDecimal(reader["HourlyRate"]),
@@ -287,5 +284,59 @@ namespace ProgPOEP1.Controllers
 
             return claims;
         }
+        private List<ClaimSummary> GetClaimSummary()
+        {
+            var summaryList = new List<ClaimSummary>();
+
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                connection.Open();
+                var query = @"
+            SELECT l.FullName, COUNT(c.ClaimID) AS TotalClaims, SUM(c.TotalAmount) AS TotalAmount
+            FROM Claims c
+            INNER JOIN Lecturers l ON c.ContractorID = l.LecturerID
+            GROUP BY l.FullName
+            ORDER BY TotalAmount DESC";
+
+                using (var command = new SqlCommand(query, connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        summaryList.Add(new ClaimSummary
+                        {
+                            LecturerName = reader["FullName"].ToString(),
+                            TotalClaims = Convert.ToInt32(reader["TotalClaims"]),
+                            TotalAmount = Convert.ToDecimal(reader["TotalAmount"])
+                        });
+                    }
+                }
+            }
+
+            return summaryList;
+        }
+
+        public IActionResult Reports()
+        {
+            if (HttpContext.Session.GetString("UserRole") != "HR")
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewBag.UserName = HttpContext.Session.GetString("UserName");
+            ViewBag.Message = "HR Reports Overview";
+
+            var summary = GetClaimSummary(); // your own method
+            ViewBag.ClaimSummary = summary;
+
+            return View();
+        }
+        public class ClaimSummary
+        {
+            public string LecturerName { get; set; }
+            public int TotalClaims { get; set; }
+            public decimal TotalAmount { get; set; }
+        }
+
     }
 }

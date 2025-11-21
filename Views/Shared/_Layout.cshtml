@@ -96,25 +96,27 @@
                                href="@Url.Action("ClaimApprovals", "HR")">
                                 <i class="fas fa-file-invoice me-2"></i>View Claims
                             </a>
-                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "CreateLecturer" ? "active" : "")"
-                               href="@Url.Action("CreateLecturer", "HR")">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Reports" ? "active" : "")"
+                               href="@Url.Action("Reports", "HR")">
                                 <i class="fas fa-chart-bar me-2"></i>Reports
                             </a>
+
                         }
                         else if (userRole == "Coordinator")
                         {
-                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "AdminDashboard" ? "active" : "")"
-                               href="@Url.Action("AdminDashboard", "Coordinator")">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")"
+                               href="@Url.Action("Dashboard", "Coordinator")">
                                 <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                             </a>
                         }
                         else if (userRole == "AcademicManager")
                         {
-                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "AdminDashboard" ? "active" : "")"
-                               href="@Url.Action("AdminDashboard", "Admin")">
+                            <a class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Dashboard" ? "active" : "")"
+                               href="@Url.Action("Dashboard", "Admin")">
                                 <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                             </a>
                         }
+
                     </nav>
                 </div>
             }

@@ -27,7 +27,6 @@ namespace ProgPOEP1.Controllers
             return userRole == "Coordinator" && !string.IsNullOrEmpty(userId);
         }
 
-        // ADD THIS MISSING DASHBOARD ACTION
         public IActionResult Dashboard()
         {
             if (!IsCoordinatorLoggedIn())
@@ -38,18 +37,6 @@ namespace ProgPOEP1.Controllers
             var pendingClaims = GetPendingClaims();
             return View(pendingClaims);
         }
-
-        // REMOVE THIS DUPLICATE METHOD - You already have IsCoordinatorLoggedIn above
-        // private bool IsCoordinatorLoggedIn() 
-        // {
-        //     return HttpContext.Session.GetString("UserRole") == "Coordinator";
-        // }
-
-        // REMOVE ProcessLogin - Your AccountController handles authentication directly
-        // public IActionResult ProcessLogin(string username, string password)
-        // {
-        //     // This is not needed since AccountController handles the login
-        // }
 
         private List<Claim> GetPendingClaims()
         {
@@ -113,7 +100,6 @@ namespace ProgPOEP1.Controllers
                 {
                     connection.Open();
 
-                    // Update claim status
                     var query = "UPDATE Claims SET Status = 'Verified' WHERE ClaimID = @ClaimId";
                     using (var command = new SqlCommand(query, connection))
                     {
@@ -122,7 +108,6 @@ namespace ProgPOEP1.Controllers
 
                         if (rowsAffected > 0)
                         {
-                            // Record approval
                             var approvalQuery = @"
                                 INSERT INTO ClaimApprovals (ClaimID, ApprovedBy, Action, Timestamp)
                                 VALUES (@ClaimID, @ApprovedBy, @Action, @Timestamp)";
@@ -167,7 +152,6 @@ namespace ProgPOEP1.Controllers
                 {
                     connection.Open();
 
-                    // Update claim status
                     var query = "UPDATE Claims SET Status = 'Rejected', Notes = @Notes WHERE ClaimID = @ClaimId";
                     using (var command = new SqlCommand(query, connection))
                     {
@@ -177,7 +161,6 @@ namespace ProgPOEP1.Controllers
 
                         if (rowsAffected > 0)
                         {
-                            // Record approval
                             var approvalQuery = @"
                                 INSERT INTO ClaimApprovals (ClaimID, ApprovedBy, Action, Comments, Timestamp)
                                 VALUES (@ClaimID, @ApprovedBy, @Action, @Comments, @Timestamp)";
@@ -215,7 +198,6 @@ namespace ProgPOEP1.Controllers
             return RedirectToAction("Login", "Account");
         }
 
-        // ADD DEBUG ACTION FOR TESTING
         public IActionResult Debug()
         {
             var sessionInfo = new

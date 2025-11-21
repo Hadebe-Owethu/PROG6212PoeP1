@@ -117,7 +117,6 @@ namespace ProgPOEP1.Controllers
 
         private Lecturer AuthenticateLecturer(string username, string password)
         {
-            // TEMPORARY: Always return a test lecturer to see if login works
             Console.WriteLine("=== TEMPORARY LOGIN BYPASS ===");
             if (username == "owethu" && password == "pass123")
             {

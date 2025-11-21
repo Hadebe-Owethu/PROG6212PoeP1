@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
-using System.Linq; // for Count
+using System.Linq; 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -125,10 +125,9 @@ namespace ProgPOEP1.Controllers
                     Notes = vm.Notes,
                     Status = "Pending",
                     CreatedAt = DateTime.Now,
-                    Lecturer = null // prevent validation
+                    Lecturer = null 
                 };
 
-                // Handle file upload
                 if (vm.DocumentFile != null && vm.DocumentFile.Length > 0)
                 {
                     var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
@@ -145,7 +144,7 @@ namespace ProgPOEP1.Controllers
                 }
                 else
                 {
-                    claim.DocumentPath = ""; // safe default
+                    claim.DocumentPath = ""; 
                 }
 
                 var result = SaveClaimToDatabase(claim);

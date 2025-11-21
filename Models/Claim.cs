@@ -28,5 +28,9 @@ namespace ProgPOEP1.Models
         public decimal HourlyRate { get; set; }
 
         public string Notes { get; set; }
+
+        public DateTime? VerifiedAt { get; set; }
+        public string VerifiedBy { get; set; }
+        public DateTime? ApprovedAt { get; set; }
     }
 }

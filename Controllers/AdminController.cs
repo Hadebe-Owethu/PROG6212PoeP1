@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
-using System.Data;
 using ProgPOEP1.Models;
+using System;
+using System.Collections.Generic;
 
 namespace ProgPOEP1.Controllers
 {
@@ -30,35 +31,62 @@ namespace ProgPOEP1.Controllers
             }
 
             var stats = GetDashboardStats();
-            var recentClaims = GetRecentClaims();
+            var verifiedClaims = GetVerifiedClaims();
+            var approvedClaims = GetApprovedClaims();
 
             ViewBag.Stats = stats;
-            ViewBag.RecentClaims = recentClaims;
-            ViewBag.AdminName = HttpContext.Session.GetString("UserName");
+            ViewBag.VerifiedClaims = verifiedClaims;
+            ViewBag.ApprovedClaims = approvedClaims;
+            ViewBag.UserName = HttpContext.Session.GetString("UserName");
 
             return View();
         }
 
-        public IActionResult SystemOverview()
+        [HttpPost]
+        public JsonResult ApproveClaim(string claimId)
         {
-            if (!IsAdminLoggedIn())
+            try
             {
-                return RedirectToAction("Login", "Account");
+                using (var connection = new SqlConnection(ConnectionString))
+                {
+                    connection.Open();
+                    var query = "UPDATE Claims SET Status = 'Approved', ApprovedAt = GETDATE() WHERE ClaimID = @ClaimID";
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@ClaimID", claimId);
+                        int rows = command.ExecuteNonQuery();
+                        return Json(new { success = rows > 0, message = rows > 0 ? "Claim approved." : "Claim not found." });
+                    }
+                }
             }
-
-            var systemData = GetSystemOverviewData();
-            return View(systemData);
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
-        public IActionResult ApprovalWorkflow()
+        [HttpPost]
+        public JsonResult RejectClaim(string claimId, string reason)
         {
-            if (!IsAdminLoggedIn())
+            try
             {
-                return RedirectToAction("Login", "Account");
+                using (var connection = new SqlConnection(ConnectionString))
+                {
+                    connection.Open();
+                    var query = "UPDATE Claims SET Status = 'Rejected', Notes = @Reason WHERE ClaimID = @ClaimID";
+                    using (var command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@ClaimID", claimId);
+                        command.Parameters.AddWithValue("@Reason", reason);
+                        int rows = command.ExecuteNonQuery();
+                        return Json(new { success = rows > 0, message = rows > 0 ? "Claim rejected." : "Claim not found." });
+                    }
+                }
             }
-
-            var workflowData = GetApprovalWorkflowData();
-            return View(workflowData);
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         private DashboardStats GetDashboardStats()
@@ -71,40 +99,37 @@ namespace ProgPOEP1.Controllers
                 {
                     connection.Open();
 
-                    // Total lecturers
                     var query1 = "SELECT COUNT(*) FROM Lecturers";
                     using (var command = new SqlCommand(query1, connection))
-                    {
                         stats.TotalLecturers = (int)command.ExecuteScalar();
-                    }
 
-                    // Total claims
                     var query2 = "SELECT COUNT(*) FROM Claims";
                     using (var command = new SqlCommand(query2, connection))
-                    {
                         stats.TotalClaims = (int)command.ExecuteScalar();
-                    }
 
-                    // Claims pending coordinator verification
                     var query3 = "SELECT COUNT(*) FROM Claims WHERE Status = 'Pending'";
                     using (var command = new SqlCommand(query3, connection))
-                    {
                         stats.PendingVerification = (int)command.ExecuteScalar();
-                    }
 
-                    // Claims pending HR approval
                     var query4 = "SELECT COUNT(*) FROM Claims WHERE Status = 'Verified'";
                     using (var command = new SqlCommand(query4, connection))
-                    {
                         stats.PendingApproval = (int)command.ExecuteScalar();
-                    }
 
-                    // Total amount paid this month
-                    var query5 = "SELECT ISNULL(SUM(TotalAmount), 0) FROM Claims WHERE Status = 'Approved' AND MONTH(CreatedAt) = MONTH(GETDATE())";
-                    using (var command = new SqlCommand(query5, connection))
-                    {
-                        stats.TotalAmount = Convert.ToDecimal(command.ExecuteScalar());
-                    }
+                    var query6 = "SELECT COUNT(*) FROM Claims WHERE Status = 'Verified'";
+                    using (var command = new SqlCommand(query6, connection))
+                        stats.TotalVerified = (int)command.ExecuteScalar();
+
+                    var query7 = "SELECT COUNT(*) FROM Claims WHERE Status = 'Approved'";
+                    using (var command = new SqlCommand(query7, connection))
+                        stats.TotalApproved = (int)command.ExecuteScalar();
+
+                    var query8 = "SELECT ISNULL(SUM(TotalAmount), 0) FROM Claims WHERE Status = 'Approved' AND MONTH(CreatedAt) = MONTH(GETDATE())";
+                    using (var command = new SqlCommand(query8, connection))
+                        stats.MonthlyTotal = Convert.ToDecimal(command.ExecuteScalar());
+
+                    var query9 = "SELECT ISNULL(SUM(TotalAmount), 0) FROM Claims WHERE Status = 'Approved' AND YEAR(CreatedAt) = YEAR(GETDATE())";
+                    using (var command = new SqlCommand(query9, connection))
+                        stats.YearlyTotal = Convert.ToDecimal(command.ExecuteScalar());
                 }
             }
             catch (Exception ex)
@@ -115,207 +140,118 @@ namespace ProgPOEP1.Controllers
             return stats;
         }
 
-        private List<Claim> GetRecentClaims()
+        private List<Claim> GetVerifiedClaims()
         {
             var claims = new List<Claim>();
 
-            try
+            using (var connection = new SqlConnection(ConnectionString))
             {
-                using (var connection = new SqlConnection(ConnectionString))
-                {
-                    connection.Open();
-                    var query = @"
-                        SELECT c.ClaimID, c.LecturerID, l.FullName, c.Month, c.HoursWorked, c.HourlyRate, 
-                               c.TotalAmount, c.Status, c.CreatedAt, c.Notes
-                        FROM Claims c
-                        INNER JOIN Lecturers l ON c.LecturerID = l.LecturerID
-                        ORDER BY c.CreatedAt DESC";
+                connection.Open();
+                var query = @"
+            SELECT c.ClaimID, c.ContractorID, l.FullName, c.Month, c.HoursWorked, c.HourlyRate,
+                   c.TotalAmount, c.Status, c.CreatedAt, c.Notes,
+                   c.VerifiedAt, c.VerifiedBy
+            FROM Claims c
+            INNER JOIN Lecturers l ON c.ContractorID = l.LecturerID
+            WHERE c.Status = 'Verified'
+            ORDER BY c.CreatedAt DESC";
 
-                    using (var command = new SqlCommand(query, connection))
+                using (var command = new SqlCommand(query, connection))
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
                     {
-                        using (var reader = command.ExecuteReader())
+                        var claim = new Claim
                         {
-                            while (reader.Read())
-                            {
-                                claims.Add(new Claim
-                                {
-                                    ClaimID = reader["ClaimID"].ToString(),
-                                    ContractorID = reader["LecturerID"].ToString(),
-                                    Month = reader["Month"].ToString(),
-                                    HoursWorked = Convert.ToDecimal(reader["HoursWorked"]),
-                                    HourlyRate = Convert.ToDecimal(reader["HourlyRate"]),
-                                    TotalAmount = Convert.ToDecimal(reader["TotalAmount"]),
-                                    Status = reader["Status"].ToString(),
-                                    CreatedAt = Convert.ToDateTime(reader["CreatedAt"]),
-                                    Notes = reader["Notes"]?.ToString() ?? ""
-                                });
-                            }
-                        }
+                            ClaimID = reader["ClaimID"].ToString(),
+                            ContractorID = reader["ContractorID"].ToString(),
+                            Month = reader["Month"].ToString(),
+                            HoursWorked = Convert.ToDecimal(reader["HoursWorked"]),
+                            HourlyRate = Convert.ToDecimal(reader["HourlyRate"]),
+                            TotalAmount = Convert.ToDecimal(reader["TotalAmount"]),
+                            Status = reader["Status"].ToString(),
+                            CreatedAt = Convert.ToDateTime(reader["CreatedAt"]),
+                            Notes = reader["Notes"]?.ToString() ?? ""
+                        };
+
+                        // 👉 Add these lines here
+                        claim.VerifiedAt = reader["VerifiedAt"] != DBNull.Value
+                            ? Convert.ToDateTime(reader["VerifiedAt"])
+                            : (DateTime?)null;
+
+                        claim.VerifiedBy = reader["VerifiedBy"]?.ToString();
+
+                        // Optional: populate Lecturer navigation property
+                        claim.Lecturer = new Lecturer
+                        {
+                            LecturerID = reader["ContractorID"].ToString(),
+                            FullName = reader["FullName"].ToString()
+                        };
+
+                        claims.Add(claim);
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error getting recent claims: {ex.Message}");
-            }
 
-            return claims.Take(10).ToList(); // Return only 10 most recent
+            return claims;
         }
 
-        private SystemOverview GetSystemOverviewData()
+
+        private List<Claim> GetApprovedClaims()
         {
-            var overview = new SystemOverview();
+            var claims = new List<Claim>();
 
-            try
+            using (var connection = new SqlConnection(ConnectionString))
             {
-                using (var connection = new SqlConnection(ConnectionString))
+                connection.Open();
+                var query = @"
+            SELECT c.ClaimID, c.ContractorID, l.FullName, c.Month, c.HoursWorked, c.HourlyRate,
+                   c.TotalAmount, c.Status, c.CreatedAt, c.Notes,
+                   c.ApprovedAt
+            FROM Claims c
+            INNER JOIN Lecturers l ON c.ContractorID = l.LecturerID
+            WHERE c.Status = 'Approved'
+            ORDER BY c.CreatedAt DESC";
+
+                using (var command = new SqlCommand(query, connection))
+                using (var reader = command.ExecuteReader())
                 {
-                    connection.Open();
-
-                    // Get department statistics
-                    var deptQuery = @"
-                        SELECT Department, COUNT(*) as LecturerCount, 
-                               AVG(HourlyRate) as AvgHourlyRate
-                        FROM Lecturers 
-                        GROUP BY Department";
-
-                    using (var command = new SqlCommand(deptQuery, connection))
+                    while (reader.Read())
                     {
-                        using (var reader = command.ExecuteReader())
+                        var claim = new Claim
                         {
-                            overview.DepartmentStats = new List<DepartmentStat>();
-                            while (reader.Read())
-                            {
-                                overview.DepartmentStats.Add(new DepartmentStat
-                                {
-                                    Department = reader["Department"].ToString(),
-                                    LecturerCount = Convert.ToInt32(reader["LecturerCount"]),
-                                    AverageHourlyRate = Convert.ToDecimal(reader["AvgHourlyRate"])
-                                });
-                            }
-                        }
-                    }
+                            ClaimID = reader["ClaimID"].ToString(),
+                            ContractorID = reader["ContractorID"].ToString(),
+                            Month = reader["Month"].ToString(),
+                            HoursWorked = Convert.ToDecimal(reader["HoursWorked"]),
+                            HourlyRate = Convert.ToDecimal(reader["HourlyRate"]),
+                            TotalAmount = Convert.ToDecimal(reader["TotalAmount"]),
+                            Status = reader["Status"].ToString(),
+                            CreatedAt = Convert.ToDateTime(reader["CreatedAt"]),
+                            Notes = reader["Notes"]?.ToString() ?? ""
+                        };
 
-                    // Get claim status distribution
-                    var statusQuery = @"
-                        SELECT Status, COUNT(*) as Count
-                        FROM Claims 
-                        GROUP BY Status";
+                        // 👉 Add this line here
+                        claim.ApprovedAt = reader["ApprovedAt"] != DBNull.Value
+                            ? Convert.ToDateTime(reader["ApprovedAt"])
+                            : (DateTime?)null;
 
-                    using (var command = new SqlCommand(statusQuery, connection))
-                    {
-                        using (var reader = command.ExecuteReader())
+                        // Optional: populate Lecturer navigation property
+                        claim.Lecturer = new Lecturer
                         {
-                            overview.ClaimStatusDistribution = new Dictionary<string, int>();
-                            while (reader.Read())
-                            {
-                                overview.ClaimStatusDistribution.Add(
-                                    reader["Status"].ToString(),
-                                    Convert.ToInt32(reader["Count"])
-                                );
-                            }
-                        }
+                            LecturerID = reader["ContractorID"].ToString(),
+                            FullName = reader["FullName"].ToString()
+                        };
+
+                        claims.Add(claim);
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error getting system overview: {ex.Message}");
-            }
 
-            return overview;
+            return claims;
         }
 
-        private ApprovalWorkflow GetApprovalWorkflowData()
-        {
-            var workflow = new ApprovalWorkflow();
-
-            try
-            {
-                using (var connection = new SqlConnection(ConnectionString))
-                {
-                    connection.Open();
-
-                    // Get claims in workflow
-                    var query = @"
-                        SELECT c.ClaimID, l.FullName, c.Month, c.TotalAmount, c.Status, c.CreatedAt,
-                               ca.ApprovedBy, ca.Action, ca.Timestamp
-                        FROM Claims c
-                        INNER JOIN Lecturers l ON c.LecturerID = l.LecturerID
-                        LEFT JOIN ClaimApprovals ca ON c.ClaimID = ca.ClaimID
-                        WHERE c.Status IN ('Pending', 'Verified')
-                        ORDER BY c.CreatedAt DESC";
-
-                    using (var command = new SqlCommand(query, connection))
-                    {
-                        using (var reader = command.ExecuteReader())
-                        {
-                            workflow.ClaimsInWorkflow = new List<WorkflowClaim>();
-                            while (reader.Read())
-                            {
-                                workflow.ClaimsInWorkflow.Add(new WorkflowClaim
-                                {
-                                    ClaimID = reader["ClaimID"].ToString(),
-                                    LecturerName = reader["FullName"].ToString(),
-                                    Month = reader["Month"].ToString(),
-                                    TotalAmount = Convert.ToDecimal(reader["TotalAmount"]),
-                                    Status = reader["Status"].ToString(),
-                                    CreatedAt = Convert.ToDateTime(reader["CreatedAt"]),
-                                    LastActionBy = reader["ApprovedBy"]?.ToString(),
-                                    LastAction = reader["Action"]?.ToString(),
-                                    LastActionTime = reader["Timestamp"] != DBNull.Value ? Convert.ToDateTime(reader["Timestamp"]) : (DateTime?)null
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error getting workflow data: {ex.Message}");
-            }
-
-            return workflow;
-        }
     }
 
-    public class DashboardStats
-    {
-        public int TotalLecturers { get; set; }
-        public int TotalClaims { get; set; }
-        public int PendingVerification { get; set; }
-        public int PendingApproval { get; set; }
-        public decimal TotalAmount { get; set; }
-    }
 
-    public class SystemOverview
-    {
-        public List<DepartmentStat> DepartmentStats { get; set; }
-        public Dictionary<string, int> ClaimStatusDistribution { get; set; }
-    }
-
-    public class DepartmentStat
-    {
-        public string Department { get; set; }
-        public int LecturerCount { get; set; }
-        public decimal AverageHourlyRate { get; set; }
-    }
-
-    public class ApprovalWorkflow
-    {
-        public List<WorkflowClaim> ClaimsInWorkflow { get; set; }
-    }
-
-    public class WorkflowClaim
-    {
-        public string ClaimID { get; set; }
-        public string LecturerName { get; set; }
-        public string Month { get; set; }
-        public decimal TotalAmount { get; set; }
-        public string Status { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public string LastActionBy { get; set; }
-        public string LastAction { get; set; }
-        public DateTime? LastActionTime { get; set; }
-    }
 }

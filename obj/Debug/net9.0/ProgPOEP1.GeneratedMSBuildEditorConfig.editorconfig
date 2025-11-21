@@ -36,8 +36,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/Admin/AdminDashboard.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cQWRtaW5EYXNoYm9hcmQuY3NodG1s
+[C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/Admin/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWRtaW5cRGFzaGJvYXJkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/Coordinator/Dashboard.cshtml]
@@ -66,6 +66,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/HR/LecturerManagement.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSFJcTGVjdHVyZXJNYW5hZ2VtZW50LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/HR/Reports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSFJcUmVwb3J0cy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/lab_services_student/Documents/Class Work Prog/Class Work Prog/PROG6212PoeP1/Views/Lecturer/Dashboard.cshtml]
