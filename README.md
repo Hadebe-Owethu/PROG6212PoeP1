@@ -16,5 +16,5 @@ This part established the core MVC foundation of the project, enabling structure
 
 Youtube link: https://youtu.be/FYwt7YjMejA
 
-Presentation: "C:\Users\lab_services_student\Desktop\PROG6212 POE Part 3 Presentation\PROG6212 POE Part 3 Presentation.pptx"
-
+Presentation: 
+"C:\Users\boh\OneDrive - Akhile Management and Consulting\Documents\Owethu's Assigments Y2\PROG6212 POE Part 3 Presentation.pptx"
